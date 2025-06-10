@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>QR-code Scanner (encryptie)</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <style>
+    video, canvas { border: 1px solid #ccc; max-width: 100%; }
+    #result { margin-top: 10px; background: #f0f0f0; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h2>QR-code Scanner (AES-encryptie)</h2>
+  <input type="password" id="pw" placeholder="Wachtwoord">
+  <button onclick="startScan()">Start scannen</button>
+  <video id="video" width="400" height="400" autoplay playsinline></video>
+  <canvas id="scanCanvas" width="400" height="400" style="display:none"></canvas>
+  <div id="result"></div>
+  <script>
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('scanCanvas');
+    let ctx = canvas.getContext('2d');
+    let scanning = false;
+
+    function startScan() {
+      if (scanning) return;
+      scanning = true;
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function(stream) {
+          video.srcObject = stream;
+          video.play();
+          requestAnimationFrame(tick);
+        })
+        .catch(function(err) {
+          alert("Kan camera niet openen: " + err);
+          scanning = false;
+        });
+    }
+
+    function tick() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        try {
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code) {
+            // Ontsleutel
+            const pw = document.getElementById('pw').value;
+            if (!pw) {
+              document.getElementById('result').innerHTML = "Voer wachtwoord in!";
+              scanning = false;
+              video.srcObject.getTracks().forEach(track => track.stop());
+              return;
+            }
+            const bytes = CryptoJS.AES.decrypt(code.data, pw);
+            const originalText = bytes.toString(CryptoJS.enc.Utf8);
+            if (originalText) {
+              document.getElementById('result').innerHTML = `<pre>${originalText}</pre>`;
+            } else {
+              document.getElementById('result').innerHTML = "Wachtwoord onjuist of QR-code beschadigd!";
+            }
+            scanning = false;
+            video.srcObject.getTracks().forEach(track => track.stop());
+            return;
+          }
+        } catch (e) {}
+      }
+      if (scanning) requestAnimationFrame(tick);
+    }
+  </script>
+</body>
+</html>
