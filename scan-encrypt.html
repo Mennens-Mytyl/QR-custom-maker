@@ -2,29 +2,117 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>QR-code Scanner (encryptie)</title>
+  <title>Taxi Informatie Systeem – QR-code scannen | Mytylschool Roosendaal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <style>
-    video, canvas { border: 1px solid #ccc; max-width: 100%; }
-    #result { margin-top: 10px; background: #f0f0f0; padding: 10px; }
+    body {
+      background: #f8fbff;
+      font-family: 'SF Pro Display', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #202b38;
+    }
+    .container {
+      max-width: 420px;
+      margin: 32px auto 0 auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,40,80,0.07);
+      padding: 28px 18px 32px 18px;
+      text-align: center;
+    }
+    img.logo {
+      width: 90px;
+      margin-bottom: 12px;
+      margin-top: 8px;
+    }
+    h1 {
+      font-size: 1.5em;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: #0061a8;
+    }
+    .subtitle {
+      color: #3b4c5a;
+      font-size: 1.06em;
+      margin-bottom: 18px;
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.12em;
+      font-weight: 600;
+      padding: 13px 0;
+      cursor: pointer;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px #e0e8f0;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%);
+    }
+    video, canvas {
+      margin: 0 auto;
+      display: block;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #e0e8f0;
+      border: 1.5px solid #eaf2fb;
+      max-width: 100%;
+    }
+    #result {
+      margin-top: 20px;
+      background: #f6fafd;
+      border-radius: 10px;
+      padding: 16px 10px;
+      color: #0061a8;
+      font-size: 1.07em;
+      word-break: break-word;
+      min-height: 48px;
+      box-shadow: 0 1px 4px #e0e8f0;
+    }
+    .info {
+      font-size: 0.98em;
+      color: #5a6b7a;
+      margin-top: 12px;
+      margin-bottom: 0;
+    }
+    @media (max-width: 480px) {
+      .container { padding: 10px 2vw 28px 2vw; }
+      h1 { font-size: 1.18em; }
+      img.logo { width: 70px; }
+    }
   </style>
 </head>
 <body>
-  <h2>QR-code Scanner (AES-encryptie)</h2>
-  <input type="password" id="pw" placeholder="Wachtwoord">
-  <button onclick="startScan()">Start scannen</button>
-  <video id="video" width="400" height="400" autoplay playsinline></video>
-  <canvas id="scanCanvas" width="400" height="400" style="display:none"></canvas>
-  <div id="result"></div>
+  <div class="container">
+    <img src="logo-mytil.png" alt="Logo Mytylschool Roosendaal" class="logo">
+    <h1>Taxi Informatie Systeem</h1>
+    <div class="subtitle">
+      Scan een beveiligde QR-code van Mytylschool Roosendaal.<br>
+      <span style="color:#008fe2;">Alleen QR-codes gemaakt met deze app zijn leesbaar.</span>
+    </div>
+    <button onclick="startScan()">Start scannen</button>
+    <video id="video" width="320" height="320" autoplay playsinline style="display:none"></video>
+    <canvas id="scanCanvas" width="320" height="320" style="display:none"></canvas>
+    <div id="result"></div>
+    <div class="info">
+      De QR-code wordt automatisch ontsleuteld.<br>
+      <b>Alleen zichtbaar voor bevoegde medewerkers.</b>
+    </div>
+  </div>
   <script>
     let video = document.getElementById('video');
     let canvas = document.getElementById('scanCanvas');
     let ctx = canvas.getContext('2d');
     let scanning = false;
-
     function startScan() {
-      if (scanning) return;
+      document.getElementById('result').innerHTML = "";
+      video.style.display = "block";
       scanning = true;
       navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
         .then(function(stream) {
@@ -37,7 +125,6 @@
           scanning = false;
         });
     }
-
     function tick() {
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -45,23 +132,18 @@
         try {
           const code = jsQR(imageData.data, imageData.width, imageData.height);
           if (code) {
-            // Ontsleutel
-            const pw = document.getElementById('pw').value;
-            if (!pw) {
-              document.getElementById('result').innerHTML = "Voer wachtwoord in!";
-              scanning = false;
-              video.srcObject.getTracks().forEach(track => track.stop());
-              return;
-            }
+            // Ontsleutel met vast wachtwoord
+            const pw = "Mytylschool";
             const bytes = CryptoJS.AES.decrypt(code.data, pw);
             const originalText = bytes.toString(CryptoJS.enc.Utf8);
             if (originalText) {
-              document.getElementById('result').innerHTML = `<pre>${originalText}</pre>`;
+              document.getElementById('result').innerHTML = `<b>Informatie:</b><br><pre style="white-space:pre-wrap;font-family:inherit;">${originalText}</pre>`;
             } else {
-              document.getElementById('result').innerHTML = "Wachtwoord onjuist of QR-code beschadigd!";
+              document.getElementById('result').innerHTML = "<b>QR-code niet geldig of niet met deze app gemaakt.</b>";
             }
             scanning = false;
             video.srcObject.getTracks().forEach(track => track.stop());
+            video.style.display = "none";
             return;
           }
         } catch (e) {}
