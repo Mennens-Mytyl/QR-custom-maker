@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>QR-code Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    textarea { width: 100%; height: 120px; margin-bottom: 10px; }
+    canvas { max-width: 100%; margin-top: 10px; border: 1px solid #ccc; }
+    .controls { margin-bottom: 10px; }
+    .logo-preview { max-width: 100px; max-height: 100px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>QR-code Generator</h1>
+  <textarea id="inputText" placeholder="Plak hier de tekst..."></textarea>
+  <div class="controls">
+    <label>
+      <input type="checkbox" id="secureMode"> Beveilig met ontbrekende hoek
+    </label>
+    <label>
+      <input type="file" id="logoInput" accept="image/*"> Voeg logo toe
+    </label>
+    <input type="text" id="nameInput" placeholder="Naam leerling (optioneel)">
+  </div>
+  <button onclick="generateQR()">Maak QR-code</button>
+  <div id="logoPreview"></div>
+  <canvas id="qrCanvas"></canvas>
+  <script>
+    let logoImg = null;
+    let logoLoaded = false;
+
+    document.getElementById('logoInput').addEventListener('change', function(e) {
+      if (e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        logoImg = new Image();
+        logoImg.onload = function() {
+          logoLoaded = true;
+          const preview = document.getElementById('logoPreview');
+          preview.innerHTML = '<img class="logo-preview" src="' + event.target.result + '" alt="Logo preview">';
+        };
+        logoImg.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function generateQR() {
+      const text = document.getElementById('inputText').value;
+      if (!text) {
+        alert('Voer eerst tekst in!');
+        return;
+      }
+      const secure = document.getElementById('secureMode').checked;
+      const canvas = document.getElementById('qrCanvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Genereer QR-code als afbeelding en laad in canvas
+      QRCode.toCanvas(canvas, text, { width: 400, margin: 0 }, function (error) {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        // Masker linkeronderhoek als beveiliging aan
+        if (secure) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, canvas.height - 70, 70, 70);
+        }
+        // Voeg logo toe als aanwezig
+        if (logoLoaded) {
+          const logoSize = Math.min(canvas.width, canvas.height) * 0.2;
+          const x = (canvas.width - logoSize) / 2;
+          const y = (canvas.height - logoSize) / 2;
+          ctx.drawImage(logoImg, x, y, logoSize, logoSize);
+        }
+        // Voeg naam toe als aanwezig
+        const name = document.getElementById('nameInput').value;
+        if (name) {
+          ctx.font = 'bold 24px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#000';
+          ctx.fillText(name, canvas.width/2, canvas.height/2 + (logoLoaded ? 60 : 0));
+        }
+      });
+    }
+  </script>
+</body>
+</html>
