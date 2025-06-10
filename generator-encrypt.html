@@ -2,33 +2,128 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>QR-code Generator (encryptie)</title>
+  <title>Taxi Informatie Systeem – QR-code maken | Mytylschool Roosendaal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
   <style>
-    textarea { width: 100%; height: 120px; }
-    canvas { border: 1px solid #ccc; }
+    body {
+      background: #f8fbff;
+      font-family: 'SF Pro Display', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #202b38;
+    }
+    .container {
+      max-width: 420px;
+      margin: 32px auto 0 auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,40,80,0.07);
+      padding: 28px 18px 32px 18px;
+      text-align: center;
+    }
+    img.logo {
+      width: 90px;
+      margin-bottom: 12px;
+      margin-top: 8px;
+    }
+    h1 {
+      font-size: 1.5em;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: #0061a8;
+    }
+    .subtitle {
+      color: #3b4c5a;
+      font-size: 1.06em;
+      margin-bottom: 18px;
+    }
+    textarea {
+      width: 98%;
+      min-height: 110px;
+      font-size: 1.08em;
+      border-radius: 12px;
+      border: 1px solid #b3c7dd;
+      padding: 10px;
+      resize: vertical;
+      margin-bottom: 18px;
+      background: #f6fafd;
+      transition: border 0.2s;
+    }
+    textarea:focus {
+      border: 1.5px solid #0061a8;
+      outline: none;
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.12em;
+      font-weight: 600;
+      padding: 13px 0;
+      cursor: pointer;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px #e0e8f0;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%);
+    }
+    #qrCanvas {
+      margin: 16px auto 0 auto;
+      display: block;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #e0e8f0;
+      border: 1.5px solid #eaf2fb;
+    }
+    .info {
+      font-size: 0.98em;
+      color: #5a6b7a;
+      margin-top: 12px;
+      margin-bottom: 0;
+    }
+    @media (max-width: 480px) {
+      .container { padding: 10px 2vw 28px 2vw; }
+      h1 { font-size: 1.18em; }
+      img.logo { width: 70px; }
+    }
   </style>
 </head>
 <body>
-  <h2>QR-code Generator (AES-encryptie)</h2>
-  <textarea id="inputText" placeholder="Plak hier de tekst..."></textarea>
-  <input type="password" id="pw" placeholder="Wachtwoord">
-  <button onclick="generateQR()">Maak QR-code</button>
-  <canvas id="qrCanvas" width="400" height="400"></canvas>
+  <div class="container">
+    <img src="logo-mytil.png" alt="Logo Mytylschool Roosendaal" class="logo">
+    <h1>Taxi Informatie Systeem</h1>
+    <div class="subtitle">
+      Maak veilig een QR-code met medische/vervoersinformatie voor Mytylschool Roosendaal.<br>
+      <span style="color:#008fe2;">Alleen te openen met de officiële scan-app.</span>
+    </div>
+    <textarea id="inputText" placeholder="Plak hier de informatie voor de leerling..."></textarea>
+    <button onclick="generateQR()">Genereer QR-code</button>
+    <canvas id="qrCanvas" width="320" height="320"></canvas>
+    <div class="info">
+      De QR-code is beveiligd en alleen te openen door bevoegde medewerkers.<br>
+      <b>Let op:</b> Sla de QR-code veilig op en deel deze niet onbeveiligd.
+    </div>
+  </div>
   <script>
     function generateQR() {
-      const text = document.getElementById('inputText').value;
-      const pw = document.getElementById('pw').value;
-      if (!text || !pw) return alert('Vul tekst en wachtwoord in!');
+      const text = document.getElementById('inputText').value.trim();
+      if (!text) {
+        alert('Vul eerst de informatie in!');
+        return;
+      }
+      const pw = "Mytylschool";
       const encrypted = CryptoJS.AES.encrypt(text, pw).toString();
       const canvas = document.getElementById('qrCanvas');
-      canvas.width = 400; canvas.height = 400;
-      QRCode.toCanvas(canvas, encrypted, { width: 400, margin: 0 }, function (error) {
-        if (error) return alert(error);
+      canvas.width = 320; canvas.height = 320;
+      QRCode.toCanvas(canvas, encrypted, { width: 320, margin: 1 }, function (error) {
+        if (error) alert(error);
       });
     }
   </script>
 </body>
 </html>
-
