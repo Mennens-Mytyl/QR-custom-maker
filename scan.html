@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>QR-code Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    video, canvas { max-width: 100%; margin-bottom: 10px; border: 1px solid #ccc; }
+    #result { margin-top: 10px; background: #f0f0f0; padding: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>QR-code Scanner</h1>
+  <label>
+    <input type="checkbox" id="secureScan"> Herstel ontbrekende hoek
+  </label>
+  <button onclick="startScan()">Start scannen</button>
+  <video id="video" width="400" height="400" autoplay playsinline></video>
+  <canvas id="scanCanvas" style="display:none;"></canvas>
+  <div id="result"></div>
+  <script>
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('scanCanvas');
+    let ctx = canvas.getContext('2d');
+    let scanning = false;
+
+    function startScan() {
+      if (scanning) return;
+      scanning = true;
+      canvas.width = 400;
+      canvas.height = 400;
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function(stream) {
+          video.srcObject = stream;
+          video.play();
+          requestAnimationFrame(tick);
+        })
+        .catch(function(err) {
+          alert("Kan camera niet openen: " + err);
+          scanning = false;
+        });
+    }
+
+    function tick() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const secure = document.getElementById('secureScan').checked;
+        // Herstel linkeronderhoek indien beveiliging aan
+        if (secure) {
+          ctx.fillStyle = 'black';
+          ctx.fillRect(0, canvas.height - 70, 70, 70);
+          // Herhaal imageData ophalen na aanpassing
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+        try {
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code) {
+            document.getElementById('result').innerHTML = `<pre>${code.data}</pre>`;
+            scanning = false;
+            video.srcObject.getTracks().forEach(track => track.stop());
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (scanning) requestAnimationFrame(tick);
+    }
+  </script>
+</body>
+</html>
