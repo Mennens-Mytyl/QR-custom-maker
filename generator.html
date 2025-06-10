@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>QR-code Generator (5 blokjes masker)</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    textarea { width: 100%; height: 120px; }
+    canvas { border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>QR-code Generator (5 blokjes masker)</h2>
+  <textarea id="inputText" placeholder="Plak hier de tekst..."></textarea>
+  <button onclick="generateQR()">Maak QR-code</button>
+  <canvas id="qrCanvas" width="400" height="400"></canvas>
+  <script>
+    function generateQR() {
+      const text = document.getElementById('inputText').value;
+      const canvas = document.getElementById('qrCanvas');
+      canvas.width = 400; canvas.height = 400;
+      QRCode.toCanvas(canvas, text, { width: 400, margin: 0 }, function (error) {
+        if (error) return alert(error);
+        // Masker linker 5 blokjes van onderste rij
+        const ctx = canvas.getContext('2d');
+        const size = canvas.width;
+        // QR-codes zijn vierkant, bepaal blokgrootte
+        const blockCount = 33; // QR versie 4 is 33x33, versie 2 is 25x25, enz.
+        // Dynamisch bepalen:
+        const imageData = ctx.getImageData(0, 0, size, size);
+        let minBlock = 21; // minimum QR-code blokken
+        for (let i = 21; i <= 177; i += 4) { // QR-code formaten
+          if (size % i === 0) { minBlock = i; }
+        }
+        const blockSize = size / minBlock;
+        // Masker de linker 5 blokjes onderaan
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, size - blockSize, blockSize * 5, blockSize);
+      });
+    }
+  </script>
+</body>
+</html>
