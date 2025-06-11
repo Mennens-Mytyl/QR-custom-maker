@@ -5,7 +5,7 @@
   <title>Taxi Info QR Lite – QR-code maken</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/short-crypt@1.0.5/dist/short-crypt.umd.min.js"></script>
   <style>
     body { background: #f8fbff; font-family: 'SF Pro Display', 'Roboto', Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
     .container { max-width: 420px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
@@ -34,7 +34,7 @@
       <label class="required">Handelen</label>
       <textarea id="handelen" required maxlength="400"></textarea>
       <label>Overige info</label>
-      <textarea id="overig" maxlength="200"></textarea>
+      <textarea id="overig" maxlength="2000"></textarea>
       <button type="submit">Genereer QR-code</button>
     </form>
     <div id="warn" class="warn"></div>
@@ -45,7 +45,7 @@
     </div>
   </div>
   <script>
-    const MAX_CHARS = 700;
+    const MAX_CHARS = 2000; // ShortCrypt kan veel meer aan dan AES
     function generateQR() {
       const naam = document.getElementById('naam').value.trim();
       const crisisnummer = document.getElementById('crisisnummer').value.trim();
@@ -55,20 +55,17 @@
         document.getElementById('warn').textContent = "Crisisnummer en handelen zijn verplicht!";
         return;
       }
-      // Bouw compact object
       const data = { n: naam, c: crisisnummer, h: handelen };
       if (overig) data.o = overig;
       const json = JSON.stringify(data);
-      // Encrypt
-      const pw = "Mytylschool";
-      const encrypted = CryptoJS.AES.encrypt(json, pw).toString();
-      // Limietcontrole
-      if (encrypted.length > MAX_CHARS) {
+      if (json.length > MAX_CHARS) {
         document.getElementById('warn').textContent = "Te veel tekst! QR-code wordt te groot en is niet goed scanbaar.";
         return;
       } else {
         document.getElementById('warn').textContent = "";
       }
+      const sc = new window.ShortCrypt("Mytylschool");
+      const encrypted = sc.encryptToQRCodeAlphanumeric(json);
       const canvas = document.getElementById('qrCanvas');
       canvas.width = 320; canvas.height = 320;
       QRCode.toCanvas(canvas, encrypted, { width: 320, margin: 2 }, function (error) {
