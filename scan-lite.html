@@ -5,7 +5,7 @@
   <title>Taxi Info QR Lite – QR-code scannen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/short-crypt@1.0.5/dist/short-crypt.umd.min.js"></script>
   <style>
     body { background: #f8fbff; font-family: 'SF Pro Display', 'Roboto', Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
     .container { max-width: 420px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
@@ -123,12 +123,11 @@
     }
 
     function processQR(data) {
-      const pw = "Mytylschool";
-      const bytes = CryptoJS.AES.decrypt(data, pw);
-      const originalText = bytes.toString(CryptoJS.enc.Utf8);
-      if (originalText) {
-        showData(originalText);
-      } else {
+      try {
+        const sc = new window.ShortCrypt("Mytylschool");
+        const json = sc.decryptQRCodeAlphanumeric(data);
+        showData(json);
+      } catch (e) {
         document.getElementById('result').innerHTML = "<b>QR-code niet geldig of niet met deze app gemaakt.</b>";
       }
     }
