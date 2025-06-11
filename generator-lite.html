@@ -33,6 +33,8 @@
       <input type="tel" id="crisisnummer" required maxlength="20">
       <label class="required">Handelen</label>
       <textarea id="handelen" required maxlength="400"></textarea>
+      <label>Overige info</label>
+      <textarea id="overig" maxlength="200"></textarea>
       <button type="submit">Genereer QR-code</button>
     </form>
     <div id="warn" class="warn"></div>
@@ -48,12 +50,14 @@
       const naam = document.getElementById('naam').value.trim();
       const crisisnummer = document.getElementById('crisisnummer').value.trim();
       const handelen = document.getElementById('handelen').value.trim();
+      const overig = document.getElementById('overig').value.trim();
       if (!crisisnummer || !handelen) {
         document.getElementById('warn').textContent = "Crisisnummer en handelen zijn verplicht!";
         return;
       }
       // Bouw compact object
       const data = { n: naam, c: crisisnummer, h: handelen };
+      if (overig) data.o = overig;
       const json = JSON.stringify(data);
       // Encrypt
       const pw = "Mytylschool";
