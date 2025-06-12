@@ -39,7 +39,7 @@
     <textarea id="overig" maxlength="1000" oninput="updateTeller()"></textarea>
     <button onclick="generateQR()">Genereer QR-code</button>
     <div id="warn" class="warn"></div>
-    <canvas id="qrCanvas" width="600" height="600"></canvas>
+    <canvas id="qrCanvas" width="500" height="500"></canvas>
     <div class="info">
       Vul alleen de belangrijkste info in.<br>
       QR-code is beveiligd en alleen te openen door bevoegde medewerkers.<br>
@@ -88,8 +88,8 @@
       const encrypted = xorEncrypt(compressed, "Mytylschool");
       const encoded = toBase64(encrypted);
       const canvas = document.getElementById('qrCanvas');
-      canvas.width = 600; canvas.height = 600;
-      QRCode.toCanvas(canvas, encoded, { width: 600, margin: 2 }, function (error) {
+      canvas.width = 500; canvas.height = 500;
+      QRCode.toCanvas(canvas, encoded, { width: 500, margin: 2 }, function (error) {
         if (error) alert(error);
       });
     }
