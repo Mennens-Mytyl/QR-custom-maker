@@ -24,6 +24,8 @@
 <body>
   <div class="container">
     <h1>Taxi Info QR – QR-code maken</h1>
+    <label for="naam" class="required">Naam</label>
+    <input type="text" id="naam" required maxlength="60">
     <label for="datum" class="required">Datum</label>
     <input type="date" id="datum" required>
     <label for="crisisnummer1" class="required">Crisisnummer 1</label>
@@ -53,15 +55,16 @@
       return btoa(unescape(encodeURIComponent(str)));
     }
     function generateQR() {
+      const naam = document.getElementById('naam').value.trim();
       const datum = document.getElementById('datum').value.trim();
       const crisisnummer1 = document.getElementById('crisisnummer1').value.trim();
       const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
       const overig = document.getElementById('overig').value.trim();
-      if (!datum || !crisisnummer1) {
-        document.getElementById('warn').textContent = "Datum en Crisisnummer 1 zijn verplicht!";
+      if (!naam || !datum || !crisisnummer1) {
+        document.getElementById('warn').textContent = "Naam, Datum en Crisisnummer 1 zijn verplicht!";
         return;
       }
-      const data = { d: datum, c1: crisisnummer1 };
+      const data = { n: naam, d: datum, c1: crisisnummer1 };
       if (crisisnummer2) data.c2 = crisisnummer2;
       if (overig) data.o = overig;
       const json = JSON.stringify(data);
