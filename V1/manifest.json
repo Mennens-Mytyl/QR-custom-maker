@@ -1,19 +1,20 @@
 {
-  "name": "Taxi Info QR",
-  "short_name": "TaxiQR",
-  "description": "Offline QR-code generator en scanner voor Mytylschool Roosendaal",
+  "name": "Taxi Info QR Scanner",
+  "short_name": "QR Scanner",
+  "description": "Scant QR-codes die met de Taxi Info app zijn gemaakt.",
   "start_url": "./scanner.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f8fbff",
   "theme_color": "#0061a8",
   "icons": [
     {
-      "src": "favicon.png",
+      "src": "./favicon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "favicon.png",
+      "src": "./favicon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
