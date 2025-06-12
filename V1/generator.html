@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Taxi Info | QR-code maken</title>
+  <title>Taxi Info | QR-code maken | V1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
@@ -16,7 +16,7 @@
       color: #202b38;
     }
     .container {
-      max-width: 1280px;
+      max-width: 950px;
       margin: 48px auto;
       background: #fff;
       border-radius: 18px;
@@ -121,16 +121,33 @@
       background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%);
     }
     #qrCanvas {
-      max-width: 100%;
-      max-height: 100%
-      width: 600px;
-      height: 600px;
-      aspect-ratio: 1 / 1;
+      width: 400px;
+      height: 400px;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 2px 12px #e0e8f0;
       border: 1.5px solid #eaf2fb;
       margin-top: 10px;
+      aspect-ratio: 1/1;
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+    .qr-buttons {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .qr-buttons button {
+      width: auto;
+      padding: 12px 22px;
+      font-size: 1.08em;
+      margin-top: 0;
+      margin-bottom: 0;
+      box-shadow: 0 2px 8px #e0e8f0;
     }
     .info {
       width: 100%;
@@ -154,6 +171,7 @@
       .container { padding: 16px 2vw 16px 2vw; }
       .form-panel, .qr-panel { min-width: 0; max-width: 100%; }
       #qrCanvas { width: 98vw; height: auto; }
+      .qr-buttons { flex-direction: column; gap: 10px; }
     }
   </style>
 </head>
@@ -190,6 +208,10 @@
     </form>
     <div class="qr-panel">
       <canvas id="qrCanvas" width="600" height="600"></canvas>
+      <div class="qr-buttons">
+        <button type="button" onclick="printQR()" style="background:#0061a8;">Print QR-code</button>
+        <button type="button" onclick="downloadQR()" style="background:#004a75;">Download QR-code</button>
+      </div>
       <div class="info">
         Vul alleen de belangrijkste info in.<br>
         QR-code is beveiligd en alleen te openen door bevoegde medewerkers.<br>
@@ -239,10 +261,30 @@
       const encrypted = xorEncrypt(compressed, "Mytylschool");
       const encoded = toBase64(encrypted);
       const canvas = document.getElementById('qrCanvas');
+      // Zorg dat canvas en QR vierkant zijn, 600x600 pixels
       canvas.width = 600; canvas.height = 600;
       QRCode.toCanvas(canvas, encoded, { width: 600, margin: 2 }, function (error) {
         if (error) alert(error);
       });
+    }
+    function printQR() {
+      const canvas = document.getElementById('qrCanvas');
+      const dataUrl = canvas.toDataURL();
+      const windowContent = `<!DOCTYPE html><html><head><title>Print QR-code</title></head><body style='margin:0; display:flex; justify-content:center; align-items:center; height:100vh;'><img src='${dataUrl}' style='width:600px; height:600px;'/></body></html>`;
+      const printWin = window.open('', '', 'width=650,height=650');
+      printWin.document.open();
+      printWin.document.write(windowContent);
+      printWin.document.close();
+      printWin.focus();
+      printWin.print();
+      printWin.close();
+    }
+    function downloadQR() {
+      const canvas = document.getElementById('qrCanvas');
+      const link = document.createElement('a');
+      link.download = 'taxi-info-qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
     updateTeller();
   </script>
