@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi Info – QR-code scannen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="theme-color" content="#0061a8">
+
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <style>
+    body { background: #f8fbff; font-family: Arial, sans-serif; margin: 0; padding: 0; color: #202b38; [span_0](start_span)}
+    .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }[span_0](end_span)
+    h1 { font-size: 1.2em; color: #0061a8; text-align: center; [span_1](start_span)}
+    button { width: 100%; background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%); color: #fff; border: none; border-radius: 12px; font-size: 1.12em; font-weight: 600; padding: 13px 0; cursor: pointer; margin-bottom: 12px; }[span_1](end_span)
+    button:hover { background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%); }
+    input[type="file"] { margin-bottom: 16px; [span_2](start_span)}
+    video, canvas { margin: 0 auto; display: block; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; max-width: 100%; }[span_2](end_span)
+    .block { background: #f6fafd; border-radius: 10px; margin: 12px 0; padding: 12px; font-size: 1.08em; [span_3](start_span)}
+    .label { font-weight: 600; color: #008fe2; margin-bottom: 2px; }[span_3](end_span)
+    .call-btn { display: block; width: 100%; background: #00c853; color: #fff; text-align: center; font-size: 1.25em; font-weight: bold; padding: 14px 0; border-radius: 10px; margin: 14px 0 8px 0; text-decoration: none; [span_4](start_span)}
+    .call-btn:hover { background: #009624; }[span_4](end_span)
+    .naam { font-size: 1.5em; font-weight: bold; margin: 16px 0 8px 0; color: #0061a8; text-align:center; [span_5](start_span)}
+    .info { font-size: 0.98em; color: #5a6b7a; margin-top: 12px; margin-bottom: 0; text-align:center; }[span_5](end_span)
+    .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0; [span_6](start_span)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Taxi Info QR – QR-code scannen</h1>
+    <button onclick="startScan()" id="startBtn">Start scannen</button>
+    <button onclick="stopScan()" id="stopBtn" style="display:none;">Stop scannen</button>
+    <input type="file" accept="image/*" onchange="handleFile(this)" id="fileInput">
+    <video id="video" width="600" height="600" autoplay playsinline style="display:none"></video>
+    <canvas id="scanCanvas" width="600" height="600" style="display:none"></canvas>
+    <div id="warn" class="warn"></div>
+    <div id="result"></div>
+    <div class="info">
+      Scan een QR-code met de camera of upload een foto/screenshot.<br>
+      Wachtwoord: <b>Mytylschool</b><br>
+      <b>Tip:</b> Voeg deze pagina toe aan je startscherm voor offline gebruik.[span_6](end_span)
+    </div>
+  </div>
+
+  <script>
+    // Registreer de Service Worker voor offline functionaliteit
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('Service worker geregistreerd:', reg.scope))
+          .catch(err => console.error('Service worker fout:', err));
+      });
+    }
+
+    function xorDecrypt(str, key) {
+      let result = '';
+      [span_7](start_span)for (let i = 0; i < str.length; i++) {[span_7](end_span)
+        result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+      [span_8](start_span)}
+      return result;
+    }
+    function fromBase64(str) {
+      return decodeURIComponent(escape(atob(str)));[span_8](end_span)
+    }
+    function formatDateNL(iso) {
+      [span_9](start_span)const delen = iso.split('-');[span_9](end_span)
+      if (delen.length === 3) {
+        [span_10](start_span)return `${delen[2]}.${delen[1]}.${delen[0]}`;[span_10](end_span)
+      }
+      return iso;
+    }
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('scanCanvas');
+    [span_11](start_span)let ctx = canvas.getContext('2d');[span_11](end_span)
+    let scanning = false;
+    let stream = null;
+    function startScan() {
+      document.getElementById('result').innerHTML = "";
+      document.getElementById('warn').textContent = "";
+      video.style.display = "block";
+      document.getElementById('startBtn').style.display = "none";
+      [span_12](start_span)document.getElementById('stopBtn').style.display = "block";[span_12](end_span)
+      scanning = true;
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function(s) {
+          stream = s;
+          video.srcObject = stream;
+          video.play();
+          requestAnimationFrame(tick);
+        })
+        .catch(function(err) {
+          [span_13](start_span)document.getElementById('warn').textContent = "Kan camera niet openen: " + err;[span_13](end_span)
+          scanning = false;
+          document.getElementById('startBtn').style.display = "block";
+          document.getElementById('stopBtn').style.display = "none";
+        });
+    }
+
+    function stopScan() {
+      scanning = false;
+      [span_14](start_span)if (stream) {[span_14](end_span)
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      [span_15](start_span)}
+      video.style.display = "none";
+      document.getElementById('startBtn').style.display = "block";
+      document.getElementById('stopBtn').style.display = "none";
+    }
+
+    function tick() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA && scanning) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);[span_15](end_span)
+        try {
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          [span_16](start_span)if (code) {[span_16](end_span)
+            processQR(code.data);
+            stopScan();
+            return;
+          [span_17](start_span)}
+        } catch (e) {}
+      }
+      if (scanning) requestAnimationFrame(tick);
+    }
+
+    function handleFile(input) {
+      document.getElementById('result').innerHTML = "";
+      document.getElementById('warn').textContent = "";
+      if (input.files && input.files[0]) {[span_17](end_span)
+        let reader = new FileReader();
+        [span_18](start_span)reader.onload = function(e) {[span_18](end_span)
+          let img = new Image();
+          [span_19](start_span)img.onload = function() {[span_19](end_span)
+            canvas.width = 600;
+            [span_20](start_span)canvas.height = 600;[span_20](end_span)
+            ctx.clearRect(0,0,600,600);
+            ctx.drawImage(img, 0, 0, 600, 600);
+            try {
+              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              [span_21](start_span)const code = jsQR(imageData.data, imageData.width, imageData.height);[span_21](end_span)
+              if (code) {
+                [span_22](start_span)processQR(code.data);[span_22](end_span)
+              } else {
+                [span_23](start_span)document.getElementById('warn').textContent = "Geen geldige QR-code gevonden op deze afbeelding.";[span_23](end_span)
+              }
+            } catch (e) {
+              [span_24](start_span)document.getElementById('warn').textContent = "Fout bij het lezen van het bestand.";[span_24](end_span)
+            }
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      [span_25](start_span)}
+    }
+
+    function processQR(data) {
+      try {
+        const encrypted = fromBase64(data);
+        const compressed = xorDecrypt(encrypted, "Mytylschool");[span_25](end_span)
+        const json = LZString.decompressFromUTF16(compressed);
+        if (json) {
+          showData(json);
+        [span_26](start_span)} else {[span_26](end_span)
+          [span_27](start_span)document.getElementById('result').innerHTML = "<b>QR-code niet geldig of wachtwoord onjuist.</b>";[span_27](end_span)
+        }
+      } catch (e) {
+        [span_28](start_span)document.getElementById('result').innerHTML = "<b>QR-code niet geldig of niet met deze app gemaakt.</b>";[span_28](end_span)
+      }
+    }
+
+    function showData(json) {
+      let data;
+      try { data = JSON.parse(json); } catch { data = {}; [span_29](start_span)}
+      let html = '';
+      if (data.n) html += `<div class="naam">${data.n}</div>`;
+      if (data.d) html += `<div class="block"><div class="label">Datum Buskaart</div>${formatDateNL(data.d)}</div>`;[span_29](end_span)
+      if (data.c1) html += `<a class="call-btn" href="tel:${data.c1.replace(/[^0-9+]/g,'')}">Bel Crisisnummer 1 (${data.c1})</a>`;
+      [span_30](start_span)if (data.c2) html += `<a class="call-btn" href="tel:${data.c2.replace(/[^0-9+]/g,'')}">Bel Crisisnummer 2 (${data.c2})</a>`;[span_30](end_span)
+      if (data.o) html += `<div class="block"><div class="label">Overige informatie Buskaart</div>${data.o.replace(/\n/g,"<br>")}</div>`;
+      [span_31](start_span)document.getElementById('result').innerHTML = html;[span_31](end_span)
+    }
+  </script>
+</body>
+</html>
