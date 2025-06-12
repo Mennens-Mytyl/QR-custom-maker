@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body { background: #f8fbff; font-family: Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
-    .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
+    .container { max-width: 420px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
     h1 { font-size: 1.2em; color: #0061a8; text-align: center; }
     label { display:block; margin-top:16px; font-weight:600; }
     input, textarea { width: 100%; font-size:1.08em; border-radius: 10px; border: 1px solid #b3c7dd; padding: 8px; background: #f6fafd; }
@@ -20,6 +20,7 @@
     #qrCanvas { margin: 0 auto; display: block; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; }
     .info { font-size: 0.98em; color: #5a6b7a; margin-top: 12px; margin-bottom: 0; text-align:center; }
     .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0; }
+    .teller { font-size:0.97em; color:#888; float:right; margin-top:-24px; margin-bottom:8px;}
   </style>
 </head>
 <body>
@@ -34,7 +35,8 @@
     <label for="crisisnummer2">Crisisnummer 2</label>
     <input type="tel" id="crisisnummer2" maxlength="20">
     <label for="overig">Overige informatie Buskaart</label>
-    <textarea id="overig" maxlength="2000"></textarea>
+    <span class="teller" id="overig-teller">0/1000</span>
+    <textarea id="overig" maxlength="1000" oninput="updateTeller()"></textarea>
     <button onclick="generateQR()">Genereer QR-code</button>
     <div id="warn" class="warn"></div>
     <canvas id="qrCanvas" width="600" height="600"></canvas>
@@ -45,7 +47,7 @@
     </div>
   </div>
   <script>
-    const MAX_QR_SIZE = 1000; // Limiet op 1000 tekens
+    const MAX_QR_SIZE = 1000; // Limiet op 1000 tekens voor JSON-data
     function xorEncrypt(str, key) {
       let result = '';
       for (let i = 0; i < str.length; i++) {
@@ -56,6 +58,10 @@
     function toBase64(str) {
       return btoa(unescape(encodeURIComponent(str)));
     }
+    function updateTeller() {
+      const overig = document.getElementById('overig');
+      document.getElementById('overig-teller').textContent = `${overig.value.length}/1000`;
+    }
     function generateQR() {
       const naam = document.getElementById('naam').value.trim();
       const datum = document.getElementById('datum').value.trim();
@@ -63,7 +69,11 @@
       const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
       const overig = document.getElementById('overig').value.trim();
       if (!naam || !datum || !crisisnummer1) {
-        alert("Naam, Datum en Crisisnummer 1 zijn verplicht!");
+        alert("Naam, Datum Buskaart en Crisisnummer 1 zijn verplicht!");
+        return;
+      }
+      if (overig.length > 1000) {
+        alert("Het veld 'Overige informatie Buskaart' mag maximaal 1000 tekens bevatten.");
         return;
       }
       const data = { n: naam, d: datum, c1: crisisnummer1 };
@@ -78,11 +88,13 @@
       const encrypted = xorEncrypt(compressed, "Mytylschool");
       const encoded = toBase64(encrypted);
       const canvas = document.getElementById('qrCanvas');
-      canvas.width = 500; canvas.height = 500;
-      QRCode.toCanvas(canvas, encoded, { width: 500, margin: 2 }, function (error) {
+      canvas.width = 600; canvas.height = 600;
+      QRCode.toCanvas(canvas, encoded, { width: 600, margin: 2 }, function (error) {
         if (error) alert(error);
       });
     }
+    // Initialiseer teller bij laden
+    updateTeller();
   </script>
 </body>
 </html>
