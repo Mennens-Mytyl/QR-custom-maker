@@ -18,19 +18,19 @@
     button:hover { background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%); }
     #qrCanvas { margin: 0 auto; display: block; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; }
     .info { font-size: 0.98em; color: #5a6b7a; margin-top: 12px; margin-bottom: 0; text-align:center; }
-    .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0;}
+    .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Taxi Info QR – QR-code maken</h1>
-    <label for="naam">Naam leerling</label>
-    <input type="text" id="naam" maxlength="60">
-    <label for="crisisnummer" class="required">Crisisnummer</label>
-    <input type="tel" id="crisisnummer" required maxlength="20">
-    <label for="handelen" class="required">Handelen</label>
-    <textarea id="handelen" required maxlength="400"></textarea>
-    <label for="overig">Overige info</label>
+    <label for="datum" class="required">Datum</label>
+    <input type="date" id="datum" required>
+    <label for="crisisnummer1" class="required">Crisisnummer 1</label>
+    <input type="tel" id="crisisnummer1" required maxlength="20">
+    <label for="crisisnummer2">Crisisnummer 2</label>
+    <input type="tel" id="crisisnummer2" maxlength="20">
+    <label for="overig">Overige informatie Buskaart</label>
     <textarea id="overig" maxlength="2000"></textarea>
     <button onclick="generateQR()">Genereer QR-code</button>
     <div id="warn" class="warn"></div>
@@ -53,29 +53,27 @@
       return btoa(unescape(encodeURIComponent(str)));
     }
     function generateQR() {
-      const naam = document.getElementById('naam').value.trim();
-      const crisisnummer = document.getElementById('crisisnummer').value.trim();
-      const handelen = document.getElementById('handelen').value.trim();
+      const datum = document.getElementById('datum').value.trim();
+      const crisisnummer1 = document.getElementById('crisisnummer1').value.trim();
+      const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
       const overig = document.getElementById('overig').value.trim();
-      if (!crisisnummer || !handelen) {
-        document.getElementById('warn').textContent = "Crisisnummer en handelen zijn verplicht!";
+      if (!datum || !crisisnummer1) {
+        document.getElementById('warn').textContent = "Datum en Crisisnummer 1 zijn verplicht!";
         return;
       }
-      const data = { n: naam, c: crisisnummer, h: handelen };
+      const data = { d: datum, c1: crisisnummer1 };
+      if (crisisnummer2) data.c2 = crisisnummer2;
       if (overig) data.o = overig;
       const json = JSON.stringify(data);
-      // Comprimeer met LZ-string
-      const compressed = LZString.compressToUTF16(json);
-      // XOR encryptie
-      const encrypted = xorEncrypt(compressed, "Mytylschool");
-      // Base64 encode
-      const encoded = toBase64(encrypted);
-      if (encoded.length > MAX_QR_SIZE) {
+      if (json.length > MAX_QR_SIZE) {
         document.getElementById('warn').textContent = "Te veel tekst! QR-code wordt te groot en is niet goed scanbaar.";
         return;
       } else {
         document.getElementById('warn').textContent = "";
       }
+      const compressed = LZString.compressToUTF16(json);
+      const encrypted = xorEncrypt(compressed, "Mytylschool");
+      const encoded = toBase64(encrypted);
       const canvas = document.getElementById('qrCanvas');
       canvas.width = 320; canvas.height = 320;
       QRCode.toCanvas(canvas, encoded, { width: 320, margin: 2 }, function (error) {
