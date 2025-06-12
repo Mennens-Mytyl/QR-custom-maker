@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi Info QR – QR-code maken (compact & offline)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <style>
+    body { background: #f8fbff; font-family: Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
+    .container { max-width: 420px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
+    h1 { font-size: 1.2em; color: #0061a8; text-align: center; }
+    label { display:block; margin-top:16px; font-weight:600; }
+    textarea { width: 100%; min-height: 120px; font-size:1.08em; border-radius: 10px; border: 1px solid #b3c7dd; padding: 8px; background: #f6fafd; }
+    button { width: 100%; background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%); color: #fff; border: none; border-radius: 12px; font-size: 1.12em; font-weight: 600; padding: 13px 0; cursor: pointer; margin: 24px 0 12px 0; }
+    button:hover { background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%); }
+    #qrCanvas { margin: 0 auto; display: block; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; }
+    .info { font-size: 0.98em; color: #5a6b7a; margin-top: 12px; margin-bottom: 0; text-align:center; }
+    .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Taxi Info QR – QR-code maken</h1>
+    <label for="inputText">Plak hier alle informatie (geen limiet, alles wordt gecomprimeerd en licht versleuteld):</label>
+    <textarea id="inputText" placeholder="Vul hier alle gegevens in..."></textarea>
+    <button onclick="generateQR()">Genereer QR-code</button>
+    <div id="warn" class="warn"></div>
+    <canvas id="qrCanvas" width="320" height="320"></canvas>
+    <div class="info">
+      De QR-code is compact, licht versleuteld en offline scanbaar.<br>
+      Wachtwoord: <b>Mytylschool</b>
+    </div>
+  </div>
+  <script>
+    // Simpele XOR-encryptie
+    function xorEncrypt(str, key) {
+      let result = '';
+      for (let i = 0; i < str.length; i++) {
+        result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+      }
+      return result;
+    }
+    function toBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+    const MAX_QR_SIZE = 2950; // veilige limiet voor QR-code (bytes)
+    function generateQR() {
+      const text = document.getElementById('inputText').value.trim();
+      if (!text) {
+        document.getElementById('warn').textContent = "Vul eerst tekst in!";
+        return;
+      }
+      // Stap 1: Comprimeer
+      const compressed = LZString.compressToUTF16(text);
+      // Stap 2: XOR encryptie
+      const encrypted = xorEncrypt(compressed, "Mytylschool");
+      // Stap 3: Base64 encode
+      const encoded = toBase64(encrypted);
+      // Check grootte
+      if (encoded.length > MAX_QR_SIZE) {
+        document.getElementById('warn').textContent = "Te veel tekst! QR-code wordt te groot en is niet goed scanbaar.";
+        return;
+      } else {
+        document.getElementById('warn').textContent = "";
+      }
+      // QR-code genereren
+      const canvas = document.getElementById('qrCanvas');
+      canvas.width = 320; canvas.height = 320;
+      QRCode.toCanvas(canvas, encoded, { width: 320, margin: 2 }, function (error) {
+        if (error) alert(error);
+      });
+    }
+  </script>
+</body>
+</html>
