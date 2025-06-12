@@ -27,6 +27,19 @@
       gap: 40px;
       justify-content: space-between;
       align-items: flex-start;
+      position: relative;
+    }
+    .logo-box {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .logo-box img {
+      width: 110px;
+      height: auto;
+      display: block;
     }
     h1 {
       width: 100%;
@@ -144,6 +157,9 @@
 </head>
 <body>
   <div class="container">
+    <div class="logo-box">
+      <img src="logo.png" alt="Logo Mytylschool Roosendaal">
+    </div>
     <h1>Taxi Info QR – QR-code maken</h1>
     <form class="form-panel" onsubmit="event.preventDefault(); generateQR();">
       <div>
