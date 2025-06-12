@@ -64,7 +64,7 @@
       } else {
         document.getElementById('warn').textContent = "";
       }
-      const sc = new window.ShortCrypt("Mytylschool");
+      const sc = window.ShortCrypt("Mytylschool");
       const encrypted = sc.encryptToQRCodeAlphanumeric(json);
       const canvas = document.getElementById('qrCanvas');
       canvas.width = 320; canvas.height = 320;
