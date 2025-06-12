@@ -45,7 +45,7 @@
     </div>
   </div>
   <script>
-    const MAX_CHARS = 2000; // ShortCrypt kan veel meer aan dan AES
+    const MAX_CHARS = 2000;
 
     function generateQR() {
       const naam = document.getElementById('naam').value.trim();
@@ -70,9 +70,13 @@
         document.getElementById('warn').textContent = "";
       }
       
-      // --- DIT IS DE GECORRIGEERDE CODE ---
-      const encrypted = ShortCrypt.encryptToQRCodeAlphanumeric(json, "Mytylschool");
-      // ------------------------------------
+      // --- DIT IS DE CORRECTE CODE ---
+      // 1. Maak een nieuwe instantie aan met 'new' en je wachtwoord.
+      const sc = new ShortCrypt("Mytylschool");
+      
+      // 2. Gebruik de instantie om de data te versleutelen.
+      const encrypted = sc.encryptToQRCodeAlphanumeric(json);
+      // -----------------------------
       
       const canvas = document.getElementById('qrCanvas');
       canvas.width = 320; 
@@ -85,6 +89,6 @@
         }
       });
     }
-  </script>
+</script>
 </body>
 </html>
