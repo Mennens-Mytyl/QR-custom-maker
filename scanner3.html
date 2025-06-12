@@ -14,9 +14,13 @@
     button:hover { background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%); }
     input[type="file"] { margin-bottom: 16px; }
     video, canvas { margin: 0 auto; display: block; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; max-width: 100%; }
+    .naam { font-size: 1.5em; font-weight: bold; margin: 16px 0 8px 0; color: #0061a8; text-align:center; }
     .block { background: #f6fafd; border-radius: 10px; margin: 12px 0; padding: 12px; font-size: 1.08em; }
-    .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0;}
+    .label { font-weight: 600; color: #008fe2; margin-bottom: 2px; }
+    .call-btn { display: block; width: 100%; background: #00c853; color: #fff; text-align: center; font-size: 1.25em; font-weight: bold; padding: 14px 0; border-radius: 10px; margin: 14px 0 8px 0; text-decoration: none; }
+    .call-btn:hover { background: #009624; }
     .info { font-size: 0.98em; color: #5a6b7a; margin-top: 12px; margin-bottom: 0; text-align:center; }
+    .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0;}
   </style>
 </head>
 <body>
@@ -32,7 +36,6 @@
     <div class="info">Scan een QR-code met de camera of upload een foto/screenshot.<br>Wachtwoord: <b>Mytylschool</b></div>
   </div>
   <script>
-    // Simpele XOR-decryptie
     function xorDecrypt(str, key) {
       let result = '';
       for (let i = 0; i < str.length; i++) {
@@ -129,20 +132,28 @@
 
     function processQR(data) {
       try {
-        // Stap 1: base64 decode
         const encrypted = fromBase64(data);
-        // Stap 2: XOR decryptie
         const compressed = xorDecrypt(encrypted, "Mytylschool");
-        // Stap 3: decompressie
-        const original = LZString.decompressFromUTF16(compressed);
-        if (original) {
-          document.getElementById('result').innerHTML = `<div class="block">${original.replace(/\n/g,"<br>")}</div>`;
+        const json = LZString.decompressFromUTF16(compressed);
+        if (json) {
+          showData(json);
         } else {
           document.getElementById('result').innerHTML = "<b>QR-code niet geldig of wachtwoord onjuist.</b>";
         }
       } catch (e) {
         document.getElementById('result').innerHTML = "<b>QR-code niet geldig of niet met deze app gemaakt.</b>";
       }
+    }
+
+    function showData(json) {
+      let data;
+      try { data = JSON.parse(json); } catch { data = {}; }
+      let html = '';
+      if (data.n) html += `<div class="naam">${data.n}</div>`;
+      if (data.c) html += `<a class="call-btn" href="tel:${data.c.replace(/[^0-9+]/g,'')}">Bel crisisnummer (${data.c})</a>`;
+      if (data.h) html += `<div class="block"><div class="label">Handelen</div>${data.h}</div>`;
+      if (data.o) html += `<div class="block"><div class="label">Overige info</div>${data.o}</div>`;
+      document.getElementById('result').innerHTML = html;
     }
   </script>
 </body>
