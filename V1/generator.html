@@ -4,14 +4,12 @@
   <meta charset="UTF-8">
   <title>Taxi Info QR – QR-code maken</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <meta name="theme-color" content="#0061a8">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body { background: #f8fbff; font-family: Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
-    .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
+    .container { max-width: 420px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
     h1 { font-size: 1.2em; color: #0061a8; text-align: center; }
     label { display:block; margin-top:16px; font-weight:600; }
     input, textarea { width: 100%; font-size:1.08em; border-radius: 10px; border: 1px solid #b3c7dd; padding: 8px; background: #f6fafd; }
@@ -47,7 +45,7 @@
     </div>
   </div>
   <script>
-    const MAX_QR_SIZE = 2950; // veilige limiet voor QR-code (bytes)
+    const MAX_QR_SIZE = 1000; // Limiet op 1000 tekens
     function xorEncrypt(str, key) {
       let result = '';
       for (let i = 0; i < str.length; i++) {
@@ -65,7 +63,7 @@
       const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
       const overig = document.getElementById('overig').value.trim();
       if (!naam || !datum || !crisisnummer1) {
-        document.getElementById('warn').textContent = "Naam, Datum en Crisisnummer 1 zijn verplicht!";
+        alert("Naam, Datum en Crisisnummer 1 zijn verplicht!");
         return;
       }
       const data = { n: naam, d: datum, c1: crisisnummer1 };
@@ -73,10 +71,8 @@
       if (overig) data.o = overig;
       const json = JSON.stringify(data);
       if (json.length > MAX_QR_SIZE) {
-        document.getElementById('warn').textContent = "Te veel tekst! QR-code wordt te groot en is niet goed scanbaar.";
+        alert("Te veel tekst! QR-code wordt te groot en is niet goed scanbaar.");
         return;
-      } else {
-        document.getElementById('warn').textContent = "";
       }
       const compressed = LZString.compressToUTF16(json);
       const encrypted = xorEncrypt(compressed, "Mytylschool");
