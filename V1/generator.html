@@ -2,12 +2,10 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Taxi Info | QR-code maken | V1.3</title>
+  <title>Taxi Info | QR-code maken | V1.4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body {
@@ -165,74 +163,6 @@
       text-align: center;
       margin-top: 14px;
     }
-    /* PDF preview style */
-    #pdf-preview {
-      display: none;
-    }
-    .pdf-a4 {
-      width: 210mm;
-      height: 297mm;
-      background: #fff;
-      color: #202b38;
-      font-family: Arial, sans-serif;
-      position: relative;
-      box-sizing: border-box;
-      padding: 36mm 20mm 36mm 20mm;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-    }
-    .pdf-logo {
-      width: 100px;
-      margin-bottom: 18px;
-      margin-top: 10px;
-    }
-    .pdf-title {
-      font-size: 2em;
-      color: #0061a8;
-      margin-bottom: 18px;
-      margin-top: 0;
-      text-align: center;
-      font-weight: bold;
-      letter-spacing: 0.02em;
-    }
-    .pdf-meta {
-      font-size: 1.15em;
-      margin-bottom: 16px;
-      text-align: left;
-      width: 100%;
-      max-width: 400px;
-    }
-    .pdf-meta strong {
-      color: #0061a8;
-      width: 110px;
-      display: inline-block;
-    }
-    .pdf-qr {
-      margin: 28px 0 0 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .pdf-qr img {
-      width: 220px;
-      height: 220px;
-      border: 1.5px solid #eaf2fb;
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 2px 12px #e0e8f0;
-      display: block;
-    }
-    .pdf-footer {
-      position: absolute;
-      bottom: 24mm;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      color: #888;
-      font-size: 1em;
-    }
     @media (max-width: 1100px) {
       .container { flex-direction: column; align-items: stretch; gap: 24px; }
       .qr-panel { align-items: center; }
@@ -270,8 +200,8 @@
       </div>
       <div>
         <label for="overig">Overige informatie Buskaart</label>
-        <span class="teller" id="overig-teller">0/1000</span>
-        <textarea id="overig" maxlength="1000" oninput="updateTeller()" placeholder="Vul hier overige informatie in..."></textarea>
+        <span class="teller" id="overig-teller">0/700</span>
+        <textarea id="overig" maxlength="700" oninput="updateTeller()" placeholder="Vul hier overige informatie in..."></textarea>
       </div>
       <button type="submit">Genereer QR-code</button>
       <div id="warn" class="warn"></div>
@@ -279,26 +209,12 @@
     <div class="qr-panel">
       <canvas id="qrCanvas" width="600" height="600"></canvas>
       <div class="qr-buttons">
-        <button type="button" onclick="printQR()" style="background:#0061a8;">Print QR-code</button>
         <button type="button" onclick="downloadQR()" style="background:#004a75;">Download QR-code</button>
-        <button type="button" onclick="downloadPDF()" style="background:#008f36;">Download PDF (A4)</button>
       </div>
       <div class="info">
         Vul alleen de belangrijkste info in.<br>
-        QR-code is beveiligd en alleen te openen door bevoegde medewerkers.<br>
-        <b>Tip:</b> Voeg deze pagina toe aan je startscherm voor offline gebruik.
+        QR-code is beveiligd en alleen te openen door bevoegde medewerkers.
       </div>
-    </div>
-  </div>
-  <!-- PDF preview (hidden, voor html2canvas) -->
-  <div id="pdf-preview">
-    <div class="pdf-a4" id="pdf-content">
-      <img src="logo.png" class="pdf-logo" alt="Logo Mytylschool Roosendaal">
-      <div class="pdf-title">Taxi Info Buskaart</div>
-      <div class="pdf-meta"><strong>Naam:</strong> <span id="pdf-naam"></span></div>
-      <div class="pdf-meta"><strong>Datum:</strong> <span id="pdf-datum"></span></div>
-      <div class="pdf-qr"><img id="pdf-qr-img" src="" alt="QR-code"></div>
-      <div class="pdf-footer">Mytylschool Roosendaal &mdash; QR-code buskaart &mdash; Versie 1.3</div>
     </div>
   </div>
   <script>
@@ -315,7 +231,7 @@
     }
     function updateTeller() {
       const overig = document.getElementById('overig');
-      document.getElementById('overig-teller').textContent = `${overig.value.length}/1000`;
+      document.getElementById('overig-teller').textContent = `${overig.value.length}/700`;
     }
     function generateQR() {
       const naam = document.getElementById('naam').value.trim();
@@ -327,8 +243,8 @@
         alert("Naam, Datum Buskaart en Crisisnummer 1 zijn verplicht!");
         return;
       }
-      if (overig.length > 1000) {
-        alert("Het veld 'Overige informatie Buskaart' mag maximaal 1000 tekens bevatten.");
+      if (overig.length > 700) {
+        alert("Het veld 'Overige informatie Buskaart' mag maximaal 700 tekens bevatten.");
         return;
       }
       const data = { n: naam, d: datum, c1: crisisnummer1 };
@@ -350,46 +266,12 @@
         }
       });
     }
-    function printQR() {
-      const canvas = document.getElementById('qrCanvas');
-      const dataUrl = canvas.toDataURL();
-      const windowContent = `<!DOCTYPE html><html><head><title>Print QR-code</title></head><body style='margin:0; display:flex; justify-content:center; align-items:center; height:100vh;'><img src='${dataUrl}' style='width:600px; height:600px;'/></body></html>`;
-      const printWin = window.open('', '', 'width=650,height=650');
-      printWin.document.open();
-      printWin.document.write(windowContent);
-      printWin.document.close();
-      printWin.focus();
-      printWin.print();
-      printWin.close();
-    }
     function downloadQR() {
       const canvas = document.getElementById('qrCanvas');
       const link = document.createElement('a');
       link.download = 'taxi-info-qr.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
-    }
-    async function downloadPDF() {
-      // Vul PDF preview met actuele data
-      document.getElementById('pdf-naam').textContent = document.getElementById('naam').value.trim();
-      const datum = document.getElementById('datum').value.trim();
-      document.getElementById('pdf-datum').textContent = datum ? datum.split('-').reverse().join('-') : '';
-      // QR-code als PNG
-      const qrCanvas = document.getElementById('qrCanvas');
-      document.getElementById('pdf-qr-img').src = qrCanvas.toDataURL('image/png');
-      // html2canvas van alleen het PDF-content blok
-      const pdfContent = document.getElementById('pdf-content');
-      const canvas = await html2canvas(pdfContent, { scale: 2, backgroundColor: "#fff" });
-      const imgData = canvas.toDataURL('image/png');
-      // jsPDF: A4 = 210x297mm = 595x842pt
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      // Bepaal afbeelding-schaal (canvas naar A4)
-      const imgProps = { width: 170, height: (canvas.height / canvas.width) * 170 };
-      pdf.addImage(imgData, 'PNG', 20, 20, imgProps.width, imgProps.height);
-      pdf.save('taxi-info-buskaart.pdf');
     }
     updateTeller();
   </script>
