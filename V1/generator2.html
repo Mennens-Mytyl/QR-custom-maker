@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Taxi Info | QR-code maken | V1.8</title>
+  <title>Taxi Info | QR-code maken | V1.9</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
@@ -165,7 +165,8 @@
       text-align: center;
       margin-top: 14px;
     }
-    /* PDF preview style */
+    
+    /* --- PDF Layout Wijzigingen V1.9 --- */
     #pdf-preview {
       display: none;
       position: absolute;
@@ -179,62 +180,73 @@
       font-family: Arial, sans-serif;
       position: relative;
       box-sizing: border-box;
-      padding: 36mm 20mm 36mm 20mm;
+      padding: 20mm; /* Aangepaste padding */
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
+      justify-content: space-between; /* Spreidt header, content en footer */
+    }
+    .pdf-header {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end; /* Logo naar rechts */
     }
     .pdf-logo {
-      width: 100px;
-      margin-bottom: 18px;
-      margin-top: 10px;
+      width: 80px; /* Logo iets kleiner */
+    }
+    .pdf-main-content {
+      flex-grow: 1; /* Neemt alle beschikbare ruimte in het midden */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
     .pdf-title {
       font-size: 2em;
       color: #0061a8;
-      margin-bottom: 18px;
-      margin-top: 0;
-      text-align: center;
       font-weight: bold;
       letter-spacing: 0.02em;
+      width: 100%;
+      margin-bottom: 24px; /* Ruimte onder de titel */
+    }
+    .pdf-meta-wrapper {
+        margin-bottom: 15px; /* Ruimte tussen data en QR-code */
     }
     .pdf-meta {
-      font-size: 1.15em;
-      margin-bottom: 16px;
-      text-align: left;
-      width: 100%;
-      max-width: 400px;
+      font-size: 1.25em;
+      margin-bottom: 8px;
     }
     .pdf-meta strong {
       color: #0061a8;
-      width: 110px;
-      display: inline-block;
+      width: auto; /* Geen vaste breedte meer */
+      display: inline;
+      margin-right: 8px;
     }
     .pdf-qr {
-      margin: 28px 0 0 0;
+      width: 100%;
+      flex-grow: 1; /* Laat de QR-container meegroeien */
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
     }
     .pdf-qr img {
-      width: 220px;
-      height: 220px;
-      border: 1.5px solid #eaf2fb;
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 2px 12px #e0e8f0;
-      display: block;
+      max-width: 100%; /* Vult de container */
+      max-height: 100%; /* Vult de container */
+      object-fit: contain; /* Behoudt aspect ratio */
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
     }
     .pdf-footer {
-      position: absolute;
-      bottom: 24mm;
-      left: 0;
+      position: static; /* Footer is nu onderdeel van de flex-layout */
       width: 100%;
       text-align: center;
       color: #888;
       font-size: 1em;
+      padding-top: 15px;
     }
+    /* --- Einde PDF Layout Wijzigingen --- */
+
     @media (max-width: 1100px) {
       .container { flex-direction: column; align-items: stretch; gap: 24px; }
       .qr-panel { align-items: center; }
@@ -252,7 +264,7 @@
     <div class="logo-box">
       <img src="logo.png" alt="Logo Mytylschool Roosendaal">
     </div>
-    <h1>Taxi Info | QR-code maken | V1.8</h1>
+    <h1>Taxi Info | QR-code maken | V1.9</h1>
     <form class="form-panel" onsubmit="event.preventDefault(); generateQR();">
       <div>
         <label for="naam" class="required">Naam</label>
@@ -287,20 +299,28 @@
       <div class="info">
         Vul alleen de belangrijkste info in.<br>
         QR-code is beveiligd en alleen te openen door bevoegde medewerkers.<br>
-        <b>Versie 1.8</b>
+        <b>Versie 1.9</b>
       </div>
     </div>
   </div>
+  
   <div id="pdf-preview">
     <div class="pdf-a4" id="pdf-content">
-      <img src="logo.png" class="pdf-logo" alt="Logo Mytylschool Roosendaal">
-      <div class="pdf-title">Taxi Info Buskaart</div>
-      <div class="pdf-meta"><strong>Naam:</strong> <span id="pdf-naam"></span></div>
-      <div class="pdf-meta"><strong>Datum:</strong> <span id="pdf-datum"></span></div>
-      <div class="pdf-qr"><img id="pdf-qr-img" src="" alt="QR-code"></div>
-      <div class="pdf-footer">Mytylschool Roosendaal &mdash; QR-code buskaart &mdash; Versie 1.8</div>
+      <div class="pdf-header">
+        <img src="logo.png" class="pdf-logo" alt="Logo Mytylschool Roosendaal">
+      </div>
+      <div class="pdf-main-content">
+        <div class="pdf-title">Taxi Info Buskaart</div>
+        <div class="pdf-meta-wrapper">
+            <div class="pdf-meta"><strong>Naam:</strong> <span id="pdf-naam"></span></div>
+            <div class="pdf-meta"><strong>Datum:</strong> <span id="pdf-datum"></span></div>
+        </div>
+        <div class="pdf-qr"><img id="pdf-qr-img" src="" alt="QR-code"></div>
+      </div>
+      <div class="pdf-footer">Mytylschool Roosendaal &mdash; QR-code buskaart &mdash; Versie 1.9</div>
     </div>
   </div>
+
   <script>
     const MAX_QR_SIZE = 1000;
     
@@ -370,14 +390,13 @@
       link.click();
     }
 
-    // --- FINALE VERSIE VAN DE FUNCTIE (V1.8) ---
     async function downloadPDF() {
         const pdfPreview = document.getElementById('pdf-preview');
         pdfPreview.style.display = 'block';
 
         document.getElementById('pdf-naam').textContent = document.getElementById('naam').value.trim();
-        const datum = document.getElementById('datum').value.trim();
-        document.getElementById('pdf-datum').textContent = datum ? datum.split('-').reverse().join('-') : '';
+        const datumInput = document.getElementById('datum').value.trim();
+        document.getElementById('pdf-datum').textContent = datumInput ? new Date(datumInput).toLocaleDateString('nl-NL') : '';
 
         const qrCanvas = document.getElementById('qrCanvas');
         if (qrCanvas.toDataURL() === 'data:,') {
@@ -405,7 +424,7 @@
 
         const pdfContent = document.getElementById('pdf-content');
         const canvas = await html2canvas(pdfContent, {
-            scale: 2,
+            scale: 3, // Hogere schaal voor betere PDF kwaliteit
             backgroundColor: "#fff",
             useCORS: true 
         });
@@ -417,20 +436,12 @@
         const pdf = new jsPDF('p', 'mm', 'a4');
 
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const margin = 20;
-        const contentWidth = pdfWidth - (margin * 2);
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasHeight / canvasWidth;
-        const contentHeight = contentWidth * ratio;
-
-        pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, contentHeight);
-
-        // ** DE BELANGRIJKSTE WIJZIGING IS HIER **
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if (isMobile) {
-            // Genereer een Blob en trigger een download. Dit is robuuster.
             const blob = pdf.output('blob');
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -439,14 +450,17 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url); // Ruim de Blob URL op
+            URL.revokeObjectURL(url);
         } else {
-            // Desktop browsers kunnen dit prima aan.
             pdf.save('taxi-info-buskaart.pdf');
         }
     }
     
+    // Initialiseer de teller bij het laden van de pagina
     updateTeller();
+
+    // Zet de datum van vandaag in het datumveld
+    document.getElementById('datum').valueAsDate = new Date();
   </script>
 </body>
 </html>
