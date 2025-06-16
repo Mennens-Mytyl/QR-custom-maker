@@ -2,12 +2,11 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Taxi Info | QR-code maken | V1.7</title>
+  <title>Taxi Info | QR-code maken | V1.6</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body {
@@ -165,76 +164,6 @@
       text-align: center;
       margin-top: 14px;
     }
-    /* PDF preview style */
-    #pdf-preview {
-      display: none;
-      position: absolute;
-      left: -9999px; /* Verberg het element buiten het scherm */
-    }
-    .pdf-a4 {
-      width: 210mm;
-      height: 297mm;
-      background: #fff;
-      color: #202b38;
-      font-family: Arial, sans-serif;
-      position: relative;
-      box-sizing: border-box;
-      padding: 36mm 20mm 36mm 20mm;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-    }
-    .pdf-logo {
-      width: 100px;
-      margin-bottom: 18px;
-      margin-top: 10px;
-    }
-    .pdf-title {
-      font-size: 2em;
-      color: #0061a8;
-      margin-bottom: 18px;
-      margin-top: 0;
-      text-align: center;
-      font-weight: bold;
-      letter-spacing: 0.02em;
-    }
-    .pdf-meta {
-      font-size: 1.15em;
-      margin-bottom: 16px;
-      text-align: left;
-      width: 100%;
-      max-width: 400px;
-    }
-    .pdf-meta strong {
-      color: #0061a8;
-      width: 110px;
-      display: inline-block;
-    }
-    .pdf-qr {
-      margin: 28px 0 0 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .pdf-qr img {
-      width: 220px;
-      height: 220px;
-      border: 1.5px solid #eaf2fb;
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 2px 12px #e0e8f0;
-      display: block;
-    }
-    .pdf-footer {
-      position: absolute;
-      bottom: 24mm;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      color: #888;
-      font-size: 1em;
-    }
     @media (max-width: 1100px) {
       .container { flex-direction: column; align-items: stretch; gap: 24px; }
       .qr-panel { align-items: center; }
@@ -252,7 +181,7 @@
     <div class="logo-box">
       <img src="logo.png" alt="Logo Mytylschool Roosendaal">
     </div>
-    <h1>Taxi Info | QR-code maken | V1.7</h1>
+    <h1>Taxi Info | QR-code maken | V1.6</h1>
     <form class="form-panel" onsubmit="event.preventDefault(); generateQR();">
       <div>
         <label for="naam" class="required">Naam</label>
@@ -287,23 +216,12 @@
       <div class="info">
         Vul alleen de belangrijkste info in.<br>
         QR-code is beveiligd en alleen te openen door bevoegde medewerkers.<br>
-        <b>Versie 1.7</b>
+        <b>Versie 1.6</b>
       </div>
-    </div>
-  </div>
-  <div id="pdf-preview">
-    <div class="pdf-a4" id="pdf-content">
-      <img src="logo.png" class="pdf-logo" alt="Logo Mytylschool Roosendaal">
-      <div class="pdf-title">Taxi Info Buskaart</div>
-      <div class="pdf-meta"><strong>Naam:</strong> <span id="pdf-naam"></span></div>
-      <div class="pdf-meta"><strong>Datum:</strong> <span id="pdf-datum"></span></div>
-      <div class="pdf-qr"><img id="pdf-qr-img" src="" alt="QR-code"></div>
-      <div class="pdf-footer">Mytylschool Roosendaal &mdash; QR-code buskaart &mdash; Versie 1.7</div>
     </div>
   </div>
   <script>
     const MAX_QR_SIZE = 1000; // Limiet op 1000 tekens voor JSON-data
-    
     function xorEncrypt(str, key) {
       let result = '';
       for (let i = 0; i < str.length; i++) {
@@ -311,23 +229,19 @@
       }
       return result;
     }
-
     function toBase64(str) {
       return btoa(unescape(encodeURIComponent(str)));
     }
-
     function updateTeller() {
       const overig = document.getElementById('overig');
       document.getElementById('overig-teller').textContent = `${overig.value.length}/700`;
     }
-
     function generateQR() {
       const naam = document.getElementById('naam').value.trim();
       const datum = document.getElementById('datum').value.trim();
       const crisisnummer1 = document.getElementById('crisisnummer1').value.trim();
       const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
       const overig = document.getElementById('overig').value.trim();
-      
       if (!naam || !datum || !crisisnummer1) {
         alert("Naam, Datum Buskaart en Crisisnummer 1 zijn verplicht!");
         return;
@@ -336,32 +250,25 @@
         alert("Het veld 'Overige informatie Buskaart' mag maximaal 700 tekens bevatten.");
         return;
       }
-      
       const data = { n: naam, d: datum, c1: crisisnummer1 };
       if (crisisnummer2) data.c2 = crisisnummer2;
       if (overig) data.o = overig;
-      
       const json = JSON.stringify(data);
       if (json.length > MAX_QR_SIZE) {
         alert("Te veel tekst! QR-code wordt te groot en is niet goed scanbaar.");
         return;
       }
-      
       const compressed = LZString.compressToUTF16(json);
       const encrypted = xorEncrypt(compressed, "Mytylschool");
       const encoded = toBase64(encrypted);
-      
       const canvas = document.getElementById('qrCanvas');
-      canvas.width = 600; 
-      canvas.height = 600;
-      
+      canvas.width = 600; canvas.height = 600;
       QRCode.toCanvas(canvas, encoded, { width: 600, margin: 2, version: 27 }, function (error) {
         if (error) {
           alert("Te veel data! QR-code versie 27 kan deze hoeveelheid niet aan. Maak je tekst korter.");
         }
       });
     }
-
     function downloadQR() {
       const canvas = document.getElementById('qrCanvas');
       const link = document.createElement('a');
@@ -369,82 +276,51 @@
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
-
-    // --- GECORRIGEERDE FUNCTIE ---
     async function downloadPDF() {
-        // Maak de PDF preview zichtbaar voor rendering
-        const pdfPreview = document.getElementById('pdf-preview');
-        pdfPreview.style.display = 'block';
-
-        // Vul PDF preview met actuele data
-        document.getElementById('pdf-naam').textContent = document.getElementById('naam').value.trim();
-        const datum = document.getElementById('datum').value.trim();
-        document.getElementById('pdf-datum').textContent = datum ? datum.split('-').reverse().join('-') : '';
-
-        // QR-code als PNG data URL
-        const qrCanvas = document.getElementById('qrCanvas');
-        if (qrCanvas.toDataURL() === 'data:,') {
-            alert('Genereer eerst een QR-code!');
-            pdfPreview.style.display = 'none'; // Verberg weer bij fout
-            return;
-        }
-        const qrImgData = qrCanvas.toDataURL('image/png');
-        const pdfQrImg = document.getElementById('pdf-qr-img');
-
-        // Wacht tot de QR-code afbeelding is geladen in de preview
-        // voordat we html2canvas gebruiken.
-        const promise = new Promise((resolve, reject) => {
-            pdfQrImg.onload = resolve;
-            pdfQrImg.onerror = reject;
-            pdfQrImg.src = qrImgData;
-        });
-
-        try {
-            await promise;
-        } catch (error) {
-            console.error("Fout bij het laden van de QR-code afbeelding:", error);
-            alert("Er is een fout opgetreden bij het voorbereiden van de PDF.");
-            pdfPreview.style.display = 'none'; // Verberg weer bij fout
-            return;
-        }
-
-        // html2canvas van alleen het PDF-content blok
-        const pdfContent = document.getElementById('pdf-content');
-        const canvas = await html2canvas(pdfContent, {
-            scale: 2,
-            backgroundColor: "#fff",
-            useCORS: true 
-        });
-
-        // Verberg de preview weer na het maken van de canvas
-        pdfPreview.style.display = 'none';
-
-        const imgData = canvas.toDataURL('image/png');
+      // Check of QR-code aanwezig is
+      const qrCanvas = document.getElementById('qrCanvas');
+      if (qrCanvas.toDataURL() === 'data:,') {
+        alert('Genereer eerst een QR-code!');
+        return;
+      }
+      const naam = document.getElementById('naam').value.trim();
+      const datum = document.getElementById('datum').value.trim();
+      // Laad logo als image
+      const logo = new Image();
+      logo.src = 'logo.png';
+      logo.onload = function() {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
-
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const margin = 20;
-        const contentWidth = pdfWidth - (margin * 2);
-
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasHeight / canvasWidth;
-        const contentHeight = contentWidth * ratio;
-
-        // Voeg de afbeelding toe, gecentreerd en met marges
-        pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, contentHeight);
-
-        // Detecteer mobiel
+        // Logo bovenaan (100px breed, verhouding behouden)
+        pdf.addImage(logo, 'PNG', 55, 18, 100, 0);
+        // Titel
+        pdf.setFontSize(22);
+        pdf.setTextColor('#0061a8');
+        pdf.text('Taxi Info Buskaart', 105, 50, { align: 'center' });
+        // Naam en datum
+        pdf.setFontSize(15);
+        pdf.setTextColor('#202b38');
+        pdf.text(`Naam: ${naam}`, 30, 70);
+        pdf.text(`Datum: ${datum ? datum.split('-').reverse().join('-') : ''}`, 30, 82);
+        // QR-code (220x220px, gecentreerd)
+        const qrDataUrl = qrCanvas.toDataURL('image/png');
+        pdf.addImage(qrDataUrl, 'PNG', 60, 100, 90, 90);
+        // Footer
+        pdf.setFontSize(12);
+        pdf.setTextColor('#888');
+        pdf.text('Mytylschool Roosendaal — QR-code buskaart — Versie 1.6', 105, 285, { align: 'center' });
+        // Mobiel: open in nieuw tabblad
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if (isMobile) {
-            pdf.output('dataurlnewwindow');
-            alert("Op mobiel opent de PDF in een nieuw tabblad. Gebruik de download- of deelknop van je browser om op te slaan.");
+          pdf.output('dataurlnewwindow');
+          alert("Op mobiel opent de PDF in een nieuw tabblad. Gebruik de download- of deelknop van je browser om op te slaan.");
         } else {
-            pdf.save('taxi-info-buskaart.pdf');
+          pdf.save('taxi-info-buskaart.pdf');
         }
+      };
+      // Als logo al geladen is (uit cache), forceer onload
+      if (logo.complete) logo.onload();
     }
-    
     updateTeller();
   </script>
 </body>
