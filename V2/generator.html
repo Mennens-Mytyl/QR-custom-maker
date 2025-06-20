@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi Info | QR-code maken | V2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    body {
+      background: #f8fbff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #202b38;
+    }
+    .container {
+      max-width: 950px;
+      margin: 48px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,40,80,0.07);
+      padding: 48px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .logo-box {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .logo-box img {
+      width: 110px;
+      height: auto;
+      display: block;
+    }
+    h1 {
+      width: 100%;
+      font-size: 2.2em;
+      color: #0061a8;
+      text-align: center;
+      margin-bottom: 36px;
+      letter-spacing: 0.02em;
+    }
+    .form-panel {
+      flex: 1 1 520px;
+      min-width: 380px;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .qr-panel {
+      flex: 1 1 400px;
+      min-width: 320px;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 18px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      margin-top: 4px;
+    }
+    input, textarea {
+      width: 100%;
+      font-size: 1.13em;
+      border-radius: 10px;
+      border: 1px solid #b3c7dd;
+      padding: 12px;
+      background: #f6fafd;
+      box-sizing: border-box;
+      transition: border 0.2s;
+    }
+    input:focus, textarea:focus {
+      border: 1.5px solid #0061a8;
+      outline: none;
+      background: #f0f7fd;
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .required:after {
+      content: " *";
+      color: #e00;
+    }
+    .teller {
+      font-size: 0.98em;
+      color: #888;
+      float: right;
+      margin-top: -28px;
+      margin-bottom: 8px;
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.25em;
+      font-weight: 600;
+      padding: 16px 0;
+      cursor: pointer;
+      margin-top: 18px;
+      box-shadow: 0 4px 12px rgba(0, 97, 168, 0.12);
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%);
+    }
+    #qrCanvas {
+      width: 400px !important;
+      height: 400px !important;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #e0e8f0;
+      border: 1.5px solid #eaf2fb;
+      margin-top: 10px;
+      aspect-ratio: 1/1;
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+    }
+    .qr-buttons {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .qr-buttons button {
+      width: auto;
+      padding: 12px 22px;
+      font-size: 1.08em;
+      margin-top: 0;
+      margin-bottom: 0;
+      box-shadow: 0 2px 8px #e0e8f0;
+    }
+    .info {
+      width: 100%;
+      font-size: 1.07em;
+      color: #5a6b7a;
+      margin-top: 22px;
+      text-align: center;
+    }
+    .warn {
+      width: 100%;
+      color: #e00;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 14px;
+    }
+    /* --- PDF Layout Wijzigingen V2 --- */
+    #pdf-preview {
+      display: none;
+      position: absolute;
+      left: -9999px;
+    }
+    .pdf-a4 {
+      width: 210mm;
+      height: 297mm;
+      background: #fff;
+      color: #202b38;
+      font-family: Arial, sans-serif;
+      position: relative;
+      box-sizing: border-box;
+      padding: 20mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pdf-header {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .pdf-logo {
+      width: 80px;
+    }
+    .pdf-main-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .pdf-title {
+      font-size: 2em;
+      color: #0061a8;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+    .pdf-meta-wrapper {
+      margin-bottom: 15px;
+    }
+    .pdf-meta {
+      font-size: 1.25em;
+      margin-bottom: 8px;
+    }
+    .pdf-meta strong {
+      color: #0061a8;
+      width: auto;
+      display: inline;
+      margin-right: 8px;
+    }
+    .pdf-qr {
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pdf-qr img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .pdf-footer {
+      position: static;
+      width: 100%;
+      text-align: center;
+      color: #888;
+      font-size: 1em;
+      padding-top: 15px;
+    }
+    @media (max-width: 1100px) {
+      .container { flex-direction: column; align-items: stretch; gap: 24px; }
+      .qr-panel { align-items: center; }
+    }
+    @media (max-width: 700px) {
+      .container { padding: 16px 2vw 16px 2vw; }
+      .form-panel, .qr-panel { min-width: 0; max-width: 100%; }
+      #qrCanvas { width: 98vw !important; height: auto !important; }
+      .qr-buttons { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-box">
+      <img src="logo.png" alt="Logo Mytylschool Roosendaal">
+    </div>
+    <h1>Taxi Info | QR-code maken | V2</h1>
+    <form class="form-panel" onsubmit="event.preventDefault(); generateQR();">
+      <div>
+        <label for="naam" class="required">Naam</label>
+        <input type="text" id="naam" required maxlength="60" placeholder="Naam leerling">
+      </div>
+      <div>
+        <label for="datum" class="required">Datum Buskaart</label>
+        <input type="date" id="datum" required>
+      </div>
+      <div>
+        <label for="crisisnummer1" class="required">Crisisnummer 1</label>
+        <input type="tel" id="crisisnummer1" required maxlength="20" placeholder="06-12345678">
+      </div>
+      <div>
+        <label for="crisisnummer2">Crisisnummer 2</label>
+        <input type="tel" id="crisisnummer2" maxlength="20" placeholder="06-87654321">
+      </div>
+      <div>
+        <label for="overig">Overige informatie Buskaart</label>
+        <span class="teller" id="overig-teller">0/700</span>
+        <textarea id="overig" maxlength="700" oninput="updateTeller()" placeholder="Vul hier overige informatie in..."></textarea>
+      </div>
+      <button type="submit">Genereer QR-code</button>
+      <div id="warn" class="warn"></div>
+    </form>
+    <div class="qr-panel">
+      <canvas id="qrCanvas" width="600" height="600"></canvas>
+      <div class="qr-buttons">
+        <button type="button" onclick="downloadQR()" style="background:#004a75;">Download QR-code</button>
+        <button type="button" onclick="downloadPDF()" style="background:#008f36;">Download PDF (A4)</button>
+      </div>
+      <div class="info">
+        Vul alleen de belangrijkste info in.<br>
+        QR-code is beveiligd en alleen te openen door bevoegde medewerkers.<br>
+        <b>Versie 2</b>
+      </div>
+    </div>
+  </div>
+  
+  <div id="pdf-preview">
+    <div class="pdf-a4" id="pdf-content">
+      <div class="pdf-header">
+        <img src="logo.png" class="pdf-logo" alt="Logo Mytylschool Roosendaal">
+      </div>
+      <div class="pdf-main-content">
+        <div class="pdf-title">Taxi Info Buskaart</div>
+        <div class="pdf-meta-wrapper">
+            <div class="pdf-meta"><strong>Naam:</strong> <span id="pdf-naam"></span></div>
+            <div class="pdf-meta"><strong>Datum:</strong> <span id="pdf-datum"></span></div>
+        </div>
+        <div class="pdf-qr"><img id="pdf-qr-img" src="" alt="QR-code"></div>
+      </div>
+      <div class="pdf-footer">Mytylschool Roosendaal &mdash; QR-code buskaart &mdash; Versie 2</div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      AANPASBARE INSTELLINGEN
+      -----------------------
+      - Logo: pas het pad aan in de HTML (zoek naar <img src="...">)
+      - Titel: pas de tekst aan in de HTML (zoek naar <h1>...</h1>)
+      - Encryptiesleutel: pas de waarde aan in onderstaande regel
+    */
+    const encryptionKey = "Mytylschool"; // Pas deze waarde aan indien nodig
+
+    const MAX_QR_SIZE = 1000;
+    
+    function xorEncrypt(str, key) {
+      let result = '';
+      for (let i = 0; i < str.length; i++) {
+        result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+      }
+      return result;
+    }
+
+    function toBase64(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
+    function updateTeller() {
+      const overig = document.getElementById('overig');
+      document.getElementById('overig-teller').textContent = `${overig.value.length}/700`;
+    }
+
+    function generateQR() {
+      const naam = document.getElementById('naam').value.trim();
+      const datum = document.getElementById('datum').value.trim();
+      const crisisnummer1 = document.getElementById('crisisnummer1').value.trim();
+      const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
+      const overig = document.getElementById('overig').value.trim();
+      
+      if (!naam || !datum || !crisisnummer1) {
+        alert("Naam, Datum Buskaart en Crisisnummer 1 zijn verplicht!");
+        return;
+      }
+      if (overig.length > 700) {
+        alert("Het veld 'Overige informatie Buskaart' mag maximaal 700 tekens bevatten.");
+        return;
+      }
+      
+      const data = { n: naam, d: datum, c1: crisisnummer1 };
+      if (crisisnummer2) data.c2 = crisisnummer2;
+      if (overig) data.o = overig;
+      
+      const json = JSON.stringify(data);
+      if (json.length > MAX_QR_SIZE) {
+        alert("Te veel tekst! QR-code wordt te groot en is niet goed scanbaar.");
+        return;
+      }
+      
+      const compressed = LZString.compressToUTF16(json);
+      const encrypted = xorEncrypt(compressed, encryptionKey); // Gebruik de aangepaste sleutel
+      const encoded = toBase64(encrypted);
+      
+      const canvas = document.getElementById('qrCanvas');
+      canvas.width = 600; 
+      canvas.height = 600;
+      
+      QRCode.toCanvas(canvas, encoded, { width: 600, margin: 2, version: 27 }, function (error) {
+        if (error) {
+          alert("Te veel data! QR-code versie 27 kan deze hoeveelheid niet aan. Maak je tekst korter.");
+        }
+      });
+    }
+
+    function downloadQR() {
+      const canvas = document.getElementById('qrCanvas');
+      const link = document.createElement('a');
+      link.download = 'taxi-info-qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    async function downloadPDF() {
+        const pdfPreview = document.getElementById('pdf-preview');
+        pdfPreview.style.display = 'block';
+
+        document.getElementById('pdf-naam').textContent = document.getElementById('naam').value.trim();
+        const datumInput = document.getElementById('datum').value.trim();
+        document.getElementById('pdf-datum').textContent = datumInput ? new Date(datumInput).toLocaleDateString('nl-NL') : '';
+
+        const qrCanvas = document.getElementById('qrCanvas');
+        if (qrCanvas.toDataURL() === 'data:,') {
+            alert('Genereer eerst een QR-code!');
+            pdfPreview.style.display = 'none';
+            return;
+        }
+        const qrImgData = qrCanvas.toDataURL('image/png');
+        const pdfQrImg = document.getElementById('pdf-qr-img');
+
+        const promise = new Promise((resolve, reject) => {
+            pdfQrImg.onload = resolve;
+            pdfQrImg.onerror = reject;
+            pdfQrImg.src = qrImgData;
+        });
+
+        try {
+            await promise;
+        } catch (error) {
+            console.error("Fout bij het laden van de QR-code afbeelding:", error);
+            alert("Er is een fout opgetreden bij het voorbereiden van de PDF.");
+            pdfPreview.style.display = 'none';
+            return;
+        }
+
+        const pdfContent = document.getElementById('pdf-content');
+        const canvas = await html2canvas(pdfContent, {
+            scale: 3,
+            backgroundColor: "#fff",
+            useCORS: true 
+        });
+
+        pdfPreview.style.display = 'none';
+
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            const blob = pdf.output('blob');
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'taxi-info-buskaart.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } else {
+            pdf.save('taxi-info-buskaart.pdf');
+        }
+    }
+    
+    updateTeller();
+    document.getElementById('datum').valueAsDate = new Date();
+  </script>
+</body>
+</html>
