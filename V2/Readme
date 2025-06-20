@@ -1,0 +1,39 @@
+# Taxi Info QR Code System
+
+This project is designed for Mytylschool Roosendaal to securely manage and distribute emergency information for students traveling by taxi.  
+It generates encrypted QR codes containing essential student data (name, date, emergency contacts, and additional information).  
+These QR codes can be printed as bus cards and scanned by authorized staff during emergencies.
+
+## Key Features
+
+- **Offline Operation:** The application works entirely offline. All assets and data are cached for use without an internet connection.
+- **Encrypted Data:** Student information is compressed and encrypted before being embedded in the QR code. Only users with the correct encryption key can decrypt and access the data.
+- **GDPR Compliance:** Personal data is handled securely. The encryption key is managed locally and not stored on any server.
+- **PDF Export:** The system allows for easy printing of bus cards in PDF format.
+- **Cross-platform:** Works on desktop and mobile devices.
+
+## How to Host
+
+You can host this application on any web server or static site hosting service (such as GitHub Pages, Netlify, or your own web server).  
+Simply upload the contents of the `V2` folder to your web server.  
+No server-side code or database is required.
+
+## How to Customize
+
+You can easily customize the following settings by editing the HTML and JavaScript files:
+
+- **Logo:** Change the logo by replacing `logo.png` or updating the `<img src="logo.png">` tag.
+- **Titles:** Edit the `<h1>` tag in `generator.html` and `scanner.html` to set your preferred title.
+- **Encryption Key:** Update the `encryptionKey` variable in the JavaScript code of both `generator.html` and `scanner.html` to change the encryption key.
+
+## Usage
+
+1. **Open `index.html` in your browser for an overview.**
+2. **Use `generator.html` to create and print bus cards.**
+3. **Use `scanner.html` to scan and view student information.**
+
+---
+
+**Note:**  
+This application is not intended for public use and should only be deployed within a trusted environment.  
+The encryption key should be kept secure and only shared with authorized personnel.
