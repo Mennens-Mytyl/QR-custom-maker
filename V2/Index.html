@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi Info QR Code System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #f8fbff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #202b38;
+    }
+    .container {
+      max-width: 600px;
+      margin: 48px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,40,80,0.07);
+      padding: 32px;
+    }
+    .logo-box {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .logo-box img {
+      width: 120px;
+      height: auto;
+      display: block;
+    }
+    h1 {
+      font-size: 1.6em;
+      color: #0061a8;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .nav a {
+      display: block;
+      background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2em;
+      font-weight: 600;
+      padding: 12px 0;
+      text-align: center;
+      text-decoration: none;
+    }
+    .nav a:hover {
+      background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%);
+    }
+    .info {
+      font-size: 1.05em;
+      color: #5a6b7a;
+      margin-top: 24px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-box">
+      <img src="logo.png" alt="Logo">
+    </div>
+    <h1>Taxi Info QR Code System</h1>
+    <div class="nav">
+      <a href="generator.html">QR-code generator</a>
+      <a href="scanner.html">QR-code scanner</a>
+    </div>
+    <div class="info">
+      <p>Deze applicatie is ontwikkeld voor Mytylschool Roosendaal om veilig en offline noodinformatie te beheren voor leerlingen in het taxivervoer.</p>
+      <p>De app is gemaakt met hulp van Perplexity Labs en voldoet aan de eisen van privacy en GDPR.</p>
+      <p>Je kunt deze applicatie zelf hosten op elke webserver of via GitHub Pages. Aanpassingen (logo, titel, encryptiesleutel) kun je eenvoudig doen in de broncode.</p>
+    </div>
+  </div>
+</body>
+</html>
