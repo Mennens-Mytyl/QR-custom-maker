@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <title>Taxi Info | QR-code scannen | V2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
-  <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body {
       background: #f8fbff;
@@ -132,7 +133,8 @@
     <div id="result"></div>
     <div class="info">
       Scan een QR-code met de camera of upload een foto/screenshot.<br>
-      <b>Versie 2</b>
+      <b>Versie 2</b><br>
+      <i>Deze scanner werkt volledig offline, ook zonder internetverbinding.</i>
     </div>
   </div>
   <script>
@@ -230,7 +232,7 @@
             ctx.drawImage(img, 0, 0, 320, 320);
             try {
               const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const code = jsQR(imageData.data, imageData.width, imageData.height);
+              const code = jsQR(imageData.data, imageData.width, canvas.height);
               if (code) {
                 processQR(code.data);
               } else {
@@ -249,7 +251,7 @@
     function processQR(data) {
       try {
         const encrypted = fromBase64(data);
-        const compressed = xorDecrypt(encrypted, encryptionKey); // Gebruik de aangepaste sleutel
+        const compressed = xorDecrypt(encrypted, encryptionKey);
         const json = LZString.decompressFromUTF16(compressed);
         if (json) {
           showData(json);
@@ -271,6 +273,11 @@
       if (data.c2) html += `<a class="call-btn" href="tel:${data.c2.replace(/[^0-9+]/g,'')}">Bel Crisisnummer 2 (${data.c2})</a>`;
       if (data.o) html += `<div class="block"><div class="label">Overige informatie Buskaart</div>${data.o.replace(/\n/g,"<br>")}</div>`;
       document.getElementById('result').innerHTML = html;
+    }
+
+    // Registreer de service worker voor offline gebruik
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
     }
   </script>
 </body>
