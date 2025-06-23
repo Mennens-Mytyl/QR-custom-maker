@@ -1,3 +1,5 @@
+[Read this in English](README.md) | [Lees dit in het Nederlands](README.NL.md)
+
 # Taxi Info QR System - Mytylschool Roosendaal
 
 This project is a web-based application specially developed for Mytylschool Roosendaal to efficiently and securely manage information for student bus cards. The application consists of two main components:
