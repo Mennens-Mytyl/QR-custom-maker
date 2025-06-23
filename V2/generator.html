@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Taxi Info | QR-code maken | V4.0</title>
+  <title>Taxi Info | QR-code maken | V5.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
-    /* --- Standaard Pagina Layout (onveranderd) --- */
+    /* --- Standaard Pagina Layout --- */
     body { background: #f8fbff; font-family: Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
     .container { max-width: 950px; margin: 48px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 48px; display: flex; flex-wrap: wrap; gap: 40px; justify-content: space-between; align-items: flex-start; position: relative; }
     .logo-box { width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 12px; }
@@ -32,7 +32,7 @@
     .info { width: 100%; font-size: 1.07em; color: #5a6b7a; margin-top: 22px; text-align: center; }
     .warn { width: 100%; color: #e00; font-weight: 600; text-align: center; margin-top: 14px; }
     
-    /* --- PDF Layout Wijzigingen V4.0 --- */
+    /* --- PDF Layout --- */
     #pdf-preview { display: none; position: absolute; left: -9999px; /* Verberg het element buiten het scherm */ }
     .pdf-a4 {
       width: 210mm;
@@ -41,7 +41,7 @@
       color: #202b38;
       font-family: Arial, sans-serif;
       box-sizing: border-box;
-      padding: 15mm; /* Iets minder padding voor meer ruimte */
+      padding: 15mm;
       display: flex;
       flex-direction: column;
     }
@@ -53,28 +53,28 @@
       padding-bottom: 10mm;
     }
     .pdf-header-text .title {
-      font-size: 2.2em; /* Grotere titel */
+      font-size: 2.2em;
       color: #0061a8;
       font-weight: bold;
       margin: 0;
     }
     .pdf-header-text .name {
-        font-size: 1.6em; /* Grotere naam */
+        font-size: 1.6em;
         margin-top: 5mm;
     }
     .pdf-logo {
-      width: 60px; /* Logo iets kleiner en uit de weg */
+      width: 40mm; /* Iets groter logo in PDF */
       height: auto;
     }
     .pdf-main-content {
       flex-grow: 1; /* Neemt alle resterende ruimte */
       display: flex;
-      align-items: center; /* Centreert de QR-code verticaal in de beschikbare ruimte */
-      justify-content: center; /* Centreert horizontaal */
+      align-items: center;
+      justify-content: center;
       width: 100%;
     }
     .pdf-qr {
-      width: 100%; /* Gebruik volledige breedte van de container */
+      width: 100%;
       height: 150mm; /* Grote vaste hoogte, QR-code schaalt hierin mee */
       display: flex;
       align-items: center;
@@ -92,7 +92,6 @@
       font-size: 0.9em;
       padding-top: 10mm;
     }
-    /* --- Einde PDF Layout Wijzigingen --- */
 
     @media (max-width: 1100px) { .container { flex-direction: column; align-items: stretch; gap: 24px; } .qr-panel { align-items: center; } }
     @media (max-width: 700px) { .container { padding: 16px 2vw; } .form-panel, .qr-panel { min-width: 0; max-width: 100%; } #qrCanvas { width: 98vw !important; height: auto !important; } .qr-buttons { flex-direction: column; gap: 10px; } }
@@ -103,7 +102,7 @@
     <div class="logo-box">
       <img src="logo.png" alt="Logo Mytylschool Roosendaal">
     </div>
-    <h1>Taxi Info | QR-code maken | V4.0</h1>
+    <h1>Taxi Info | QR-code maken | V5.0</h1>
     <form class="form-panel" onsubmit="event.preventDefault(); generateQR();">
       <div>
         <label for="naam" class="required">Naam</label>
@@ -148,7 +147,7 @@
       <div class="pdf-header">
           <div class="pdf-header-text">
               <p class="title">Taxi Info Buskaart</p>
-              <p class="name" id="pdf-naam"></p>
+              <p class="name">Naam: <span id="pdf-naam"></span></p>
           </div>
           <img src="logo.png" class="pdf-logo" alt="Logo Mytylschool Roosendaal">
       </div>
@@ -160,7 +159,6 @@
   </div>
 
   <script>
-    // --- JavaScript (grotendeels onveranderd) ---
     function updateTeller() {
       const overig = document.getElementById('overig');
       document.getElementById('overig-teller').textContent = `${overig.value.length}/700`;
@@ -209,6 +207,9 @@
       link.click();
     }
 
+    // ===================================================================================
+    // HIERONDER STAAT DE VOLLEDIG VERBETERDE `downloadPDF` FUNCTIE
+    // ===================================================================================
     async function downloadPDF() {
         const qrCanvas = document.getElementById('qrCanvas');
         if (qrCanvas.toDataURL().length < 100) {
@@ -216,24 +217,58 @@
             return;
         }
 
+        // --- START VAN DE WIJZIGINGEN ---
+
+        // STAP 1: Haal alle data opnieuw op, net als in generateQR()
+        // Dit is nodig om de QR-code opnieuw te kunnen genereren in hoge resolutie.
+        const naamInput = document.getElementById('naam').value.trim();
+        const datumInput = document.getElementById('datum').value.trim();
+        const crisisnummer1 = document.getElementById('crisisnummer1').value.trim();
+        const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
+        const overig = document.getElementById('overig').value.trim();
+        
+        const data = { n: naamInput, d: datumInput, c1: crisisnummer1 };
+        if (crisisnummer2) data.c2 = crisisnummer2;
+        if (overig) data.o = overig;
+        
+        const json = JSON.stringify(data);
+        const encoded = LZString.compressToBase64(json);
+
+        // STAP 2: Genereer een NIEUWE, HOGE-RESOLUTIE QR-code als Data URL
+        // We gebruiken niet de .toCanvas() methode, maar .toDataURL() met hoge resolutie.
+        let qrImgData;
+        try {
+            qrImgData = await QRCode.toDataURL(encoded, {
+                width: 1024, // Hoge resolutie voor scherpe print, bv 1024px
+                margin: 2,
+                errorCorrectionLevel: 'H'
+            });
+        } catch (err) {
+            console.error("Fout bij genereren van hoge-resolutie QR-code voor PDF:", err);
+            alert("Er is een fout opgetreden bij het voorbereiden van de PDF.");
+            return;
+        }
+        
+        // --- EINDE VAN DE WIJZIGINGEN ---
+
+        // De rest van de functie werkt nu met de nieuwe, scherpe qrImgData
         const pdfPreview = document.getElementById('pdf-preview');
         pdfPreview.style.display = 'block';
 
-        const naamInput = document.getElementById('naam').value.trim();
-        const datumInput = document.getElementById('datum').value.trim();
-        const geformatteerdeDatum = datumInput ? new Date(datumInput).toLocaleDateString('nl-NL') : '';
+        const geformatteerdeDatum = datumInput ? new Date(datumInput).toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
 
-        document.getElementById('pdf-naam').textContent = `Naam: ${naamInput}`;
-        document.getElementById('pdf-datum').textContent = `Datum: ${geformatteerdeDatum}`;
+        // Vul de PDF template in
+        document.getElementById('pdf-naam').textContent = naamInput; // Alleen de naam, 'Naam:' staat al in de HTML
+        document.getElementById('pdf-datum').textContent = geformatteerdeDatum;
         
-        const qrImgData = qrCanvas.toDataURL('image/png');
+        // Plaats de HOGE-RESOLUTIE QR-code in de template
         const pdfQrImg = document.getElementById('pdf-qr-img');
         
         try {
             await new Promise((resolve, reject) => {
                 pdfQrImg.onload = resolve;
                 pdfQrImg.onerror = reject;
-                pdfQrImg.src = qrImgData;
+                pdfQrImg.src = qrImgData; // Hier wordt de nieuwe, scherpe afbeelding gebruikt
             });
         } catch (error) {
             console.error("Fout bij het laden van de QR-code afbeelding:", error);
@@ -242,6 +277,7 @@
             return;
         }
 
+        // Maak de PDF met html2canvas zoals je al deed
         const pdfContent = document.getElementById('pdf-content');
         const canvas = await html2canvas(pdfContent, { scale: 3, useCORS: true });
         
@@ -254,10 +290,10 @@
         const pdfHeight = pdf.internal.pageSize.getHeight();
         
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-
         pdf.save(`taxi-info_${naamInput.replace(/ /g, '_') || 'buskaart'}.pdf`);
     }
     
+    // Initialiseer de pagina bij laden
     updateTeller();
     document.getElementById('datum').valueAsDate = new Date();
   </script>
