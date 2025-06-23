@@ -1,4 +1,4 @@
-[Read this in English](README.md) | [Lees dit in het Nederlands](README.nl.md)
+[Read this in English](README.md) | [Lees dit in het Nederlands](README.NL.md)
 
 # Taxi Info QR System - Mytylschool Roosendaal
 
