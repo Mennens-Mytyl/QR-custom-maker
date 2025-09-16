@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi Info QR Code System V3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #f8fbff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #202b38;
+    }
+    .container {
+      max-width: 600px;
+      margin: 48px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,40,80,0.07);
+      padding: 32px;
+    }
+    .logo-box {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .logo-box img {
+      width: 120px;
+      height: auto;
+      display: block;
+    }
+    h1 {
+      font-size: 1.6em;
+      color: #0061a8;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .nav a {
+      display: block;
+      background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2em;
+      font-weight: 600;
+      padding: 12px 0;
+      text-align: center;
+      text-decoration: none;
+    }
+    .nav a:hover {
+      background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%);
+    }
+    .info {
+      font-size: 1.05em;
+      color: #5a6b7a;
+      margin-top: 24px;
+      text-align: center;
+    }
+    .version {
+      background: #f0f7fd;
+      border: 1px solid #b3c7dd;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 16px 0;
+      font-size: 0.95em;
+      color: #0061a8;
+      text-align: center;
+    }
+    .features {
+      background: #f6fafd;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 0.95em;
+    }
+    .features h3 {
+      color: #0061a8;
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+    .features ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    .features li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-box">
+      <img src="logo.png" alt="Logo">
+    </div>
+    <h1>Taxi Info QR Code System V3</h1>
+    
+    <div class="version">
+      <strong>Versie 3.0 - Verbeterde structuur</strong><br>
+      Nu met 8 specifieke informatiecategorieën
+    </div>
+    
+    <div class="nav">
+      <a href="generator.html">QR-code generator</a>
+      <a href="scanner.html">QR-code scanner</a>
+    </div>
+    
+    <div class="features">
+      <h3>Nieuwe functies in V3:</h3>
+      <ul>
+        <li><strong>Diagnose</strong> - Medische diagnose informatie</li>
+        <li><strong>Medicatie</strong> - Medicijngebruik en doseringen</li>
+        <li><strong>Protocollen</strong> - Te volgen procedures</li>
+        <li><strong>Gedrag</strong> - Gedragsaspecten en observaties</li>
+        <li><strong>Communicatie</strong> - Communicatievoorkeuren en methoden</li>
+        <li><strong>Aanspreekbaarheid</strong> - Hoe de leerling benaderd wil worden</li>
+        <li><strong>Transfers</strong> - Hulp bij overstappen en bewegen</li>
+        <li><strong>Overig</strong> - Bijvoorbeeld allergieën en andere belangrijke info</li>
+      </ul>
+      <p><strong>Flexibele tekstlimiet:</strong> Alle 8 vakken samen kunnen maximaal 700 tekens bevatten. Je kunt de tekens vrij verdelen over de vakken - sommige vakken kunnen meer tekens bevatten dan anderen.</p>
+    </div>
+    
+    <div class="info">
+      <p>Deze applicatie is ontwikkeld voor Mytylschool Roosendaal om veilig en offline noodinformatie te beheren voor leerlingen in het taxivervoer.</p>
+      <p>De app is gemaakt met hulp van Perplexity Labs en voldoet aan de eisen van privacy en GDPR.</p>
+      <p>Je kunt deze applicatie zelf hosten op elke webserver of via GitHub Pages. Aanpassingen (logo, titel, encryptiesleutel) kun je eenvoudig doen in de broncode.</p>
+    </div>
+  </div>
+</body>
+</html>

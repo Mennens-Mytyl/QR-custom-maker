@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi Info – QR-code scannen | V4.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="theme-color" content="#0061a8">
+
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <style>
+    body { background: #f8fbff; font-family: Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
+    .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 28px 18px 32px 18px; }
+    h1 { font-size: 1.2em; color: #0061a8; text-align: center; }
+    button { width: 100%; background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%); color: #fff; border: none; border-radius: 12px; font-size: 1.12em; font-weight: 600; padding: 13px 0; cursor: pointer; margin-bottom: 12px; }
+    button:hover { background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%); }
+    input[type="file"] { margin-bottom: 16px; }
+    video, canvas { margin: 0 auto; display: block; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; max-width: 100%; }
+    .block { background: #f6fafd; border-radius: 10px; margin: 12px 0; padding: 12px; font-size: 1.08em; }
+    .label { font-weight: 600; color: #008fe2; margin-bottom: 2px; }
+    .call-btn { display: block; width: 100%; background: #00c853; color: #fff; text-align: center; font-size: 1.25em; font-weight: bold; padding: 14px 0; border-radius: 10px; margin: 14px 0 8px 0; text-decoration: none; }
+    .call-btn:hover { background: #009624; }
+    .naam { font-size: 1.5em; font-weight: bold; margin: 16px 0 8px 0; color: #0061a8; text-align:center; }
+    .info { font-size: 0.98em; color: #5a6b7a; margin-top: 12px; margin-bottom: 0; text-align:center; }
+    .warn { color:#e00; font-weight:600; text-align:center; margin:8px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Taxi Info – QR-code scannen | V4.0</h1>
+    <button onclick="startScan()" id="startBtn">Start scannen</button>
+    <button onclick="stopScan()" id="stopBtn" style="display:none;">Stop scannen</button>
+    <input type="file" accept="image/*" onchange="handleFile(this)" id="fileInput">
+    <video id="video" width="600" height="600" autoplay playsinline style="display:none"></video>
+    <canvas id="scanCanvas" width="600" height="600" style="display:none"></canvas>
+    <div id="warn" class="warn"></div>
+    <div id="result"></div>
+    <div class="info">
+      Scan een QR-code met de camera of upload een foto/screenshot.<br>
+      <b>Tip:</b> Voeg deze pagina toe aan je startscherm voor offline gebruik.
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('Service worker succesvol geregistreerd:', reg.scope))
+          .catch(err => console.error('Service worker registratie mislukt:', err));
+      });
+    }
+
+    function formatDateNL(iso) {
+      const delen = iso.split('-');
+      if (delen.length === 3) {
+        return `${delen[2]}-${delen[1]}-${delen[0]}`;
+      }
+      return iso;
+    }
+
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('scanCanvas');
+    let ctx = canvas.getContext('2d');
+    let scanning = false;
+    let stream = null;
+
+    function startScan() {
+      document.getElementById('result').innerHTML = "";
+      document.getElementById('warn').textContent = "";
+      video.style.display = "block";
+      document.getElementById('startBtn').style.display = "none";
+      document.getElementById('stopBtn').style.display = "block";
+      scanning = true;
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function(s) {
+          stream = s;
+          video.srcObject = stream;
+          video.play();
+          requestAnimationFrame(tick);
+        })
+        .catch(function(err) {
+          document.getElementById('warn').textContent = "Kan camera niet openen: " + err;
+          stopScan(); // Zorg ervoor dat de UI wordt gereset
+        });
+    }
+
+    function stopScan() {
+      scanning = false;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      video.style.display = "none";
+      document.getElementById('startBtn').style.display = "block";
+      document.getElementById('stopBtn').style.display = "none";
+    }
+
+    function tick() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA && scanning) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        try {
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert"
+          });
+          if (code) {
+            processQR(code.data);
+            stopScan();
+            return;
+          }
+        } catch (e) {
+          // Fouten worden hier genegeerd om te voorkomen dat de scan stopt
+        }
+      }
+      if (scanning) requestAnimationFrame(tick);
+    }
+
+    function handleFile(input) {
+      document.getElementById('result').innerHTML = "";
+      const warnDiv = document.getElementById('warn');
+      warnDiv.textContent = "";
+
+      if (input.files && input.files[0]) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          let img = new Image();
+          img.onload = function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            try {
+              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert"
+              });
+              if (code) {
+                processQR(code.data);
+              } else {
+                warnDiv.textContent = "Geen geldige QR-code gevonden op deze afbeelding.";
+              }
+            } catch (e) {
+              warnDiv.textContent = "Fout bij het lezen van het bestand.";
+            }
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // --- VERNIEUWDE FUNCTIE ---
+    function processQR(data) {
+      const resultDiv = document.getElementById('result');
+      try {
+        // Stap 1: Decomprimeer de Base64 data direct naar een JSON string
+        const json = LZString.decompressFromBase64(data);
+        
+        // Stap 2: Controleer of de decompressie is gelukt
+        if (json) {
+          // Stap 3: Parse de JSON string naar een object en toon de data
+          const parsedData = JSON.parse(json);
+          console.log('Gelezen data uit QR-code:', parsedData);
+          showData(parsedData);
+        } else {
+          resultDiv.innerHTML = "<b>QR-code niet geldig of niet compatibel met deze scanner.</b>";
+        }
+      } catch (e) {
+        console.error("Fout bij verwerken QR-code:", e);
+        resultDiv.innerHTML = "<b>Kon de QR-code niet lezen. Is deze met de juiste generator gemaakt?</b>";
+      }
+    }
+
+    function showData(data) {
+      let html = '';
+      
+      console.log('Alle beschikbare velden in data:', Object.keys(data));
+      
+      // Basis informatie
+      if (data.n) html += `<div class="naam">${data.n}</div>`;
+      if (data.d) html += `<div class="block"><div class="label">Datum Buskaart</div>${formatDateNL(data.d)}</div>`;
+      
+      // Crisisnummers
+      if (data.c1) html += `<a class="call-btn" href="tel:${data.c1.replace(/[^0-9+]/g,'')}">Bel Crisisnummer 1 (${data.c1})</a>`;
+      if (data.c2) html += `<a class="call-btn" href="tel:${data.c2.replace(/[^0-9+]/g,'')}">Bel Crisisnummer 2 (${data.c2})</a>`;
+      
+      // Nieuwe velden - alleen tonen als ze gevuld zijn
+      console.log('Diagnose veld:', data.diag);
+      if (data.diag) html += `<div class="block"><div class="label">Diagnose</div>${data.diag.replace(/\n/g,"<br>")}</div>`;
+      if (data.med) html += `<div class="block"><div class="label">Medicatie</div>${data.med.replace(/\n/g,"<br>")}</div>`;
+      if (data.prot) html += `<div class="block"><div class="label">Protocollen</div>${data.prot.replace(/\n/g,"<br>")}</div>`;
+      if (data.gedr) html += `<div class="block"><div class="label">Gedrag</div>${data.gedr.replace(/\n/g,"<br>")}</div>`;
+      if (data.comm) html += `<div class="block"><div class="label">Communicatie</div>${data.comm.replace(/\n/g,"<br>")}</div>`;
+      if (data.aansp) html += `<div class="block"><div class="label">Aanspreekbaarheid</div>${data.aansp.replace(/\n/g,"<br>")}</div>`;
+      if (data.trans) html += `<div class="block"><div class="label">Transfers</div>${data.trans.replace(/\n/g,"<br>")}</div>`;
+      if (data.overig) html += `<div class="block"><div class="label">Overig</div>${data.overig.replace(/\n/g,"<br>")}</div>`;
+      
+      // Legacy ondersteuning voor oude QR-codes
+      if (data.o && !data.overig) html += `<div class="block"><div class="label">Overige informatie Buskaart</div>${data.o.replace(/\n/g,"<br>")}</div>`;
+      
+      console.log('HTML die wordt gegenereerd:', html.substring(0, 200) + '...');
+      document.getElementById('result').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
