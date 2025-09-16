@@ -26,7 +26,7 @@
     .teller { font-size: 0.98em; color: #888; float: right; margin-top: -28px; margin-bottom: 8px; }
     button { width: 100%; background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%); color: #fff; border: none; border-radius: 12px; font-size: 1.25em; font-weight: 600; padding: 16px 0; cursor: pointer; margin-top: 18px; box-shadow: 0 4px 12px rgba(0, 97, 168, 0.12); transition: background 0.3s ease; }
     button:hover { background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%); }
-    #qrCanvas { width: 400px !important; height: 400px !important; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; margin-top: 10px; aspect-ratio: 1/1; display: block; max-width: 100%; max-height: 100%; }
+    #qrCanvas { width: 500px !important; height: 500px !important; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; margin-top: 10px; aspect-ratio: 1/1; display: block; max-width: 100%; max-height: 100%; }
     .qr-buttons { width: 100%; display: flex; flex-direction: row; gap: 16px; margin-top: 14px; justify-content: center; }
     .qr-buttons button { width: auto; padding: 12px 22px; font-size: 1.08em; margin-top: 0; margin-bottom: 0; box-shadow: 0 2px 8px #e0e8f0; }
     .info { width: 100%; font-size: 1.07em; color: #5a6b7a; margin-top: 22px; text-align: center; }
@@ -97,7 +97,7 @@
     }
 
     @media (max-width: 1100px) { .container { flex-direction: column; align-items: stretch; gap: 24px; } .qr-panel { align-items: center; } }
-    @media (max-width: 700px) { .container { padding: 16px 2vw; } .form-panel, .qr-panel { min-width: 0; max-width: 100%; } #qrCanvas { width: 98vw !important; height: auto !important; } .qr-buttons { flex-direction: column; gap: 10px; } }
+    @media (max-width: 700px) { .container { padding: 16px 2vw; } .form-panel, .qr-panel { min-width: 0; max-width: 100%; } #qrCanvas { width: 90vw !important; height: auto !important; } .qr-buttons { flex-direction: column; gap: 10px; } }
   </style>
 </head>
 <body>
@@ -168,13 +168,13 @@
         <textarea id="overig" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier overige informatie in..."></textarea>
       </div>
       <div style="text-align: center; margin-top: 10px;">
-        <span id="total-teller" style="font-size: 1.1em; font-weight: 600; color: #0061a8;">Totaal: 0/700 tekens</span>
+        <span id="total-teller" style="font-size: 1.1em; font-weight: 600; color: #0061a8;">Totaal: 0/1200 tekens</span>
       </div>
       <button type="submit">Genereer QR-code</button>
       <div id="warn" class="warn"></div>
     </form>
     <div class="qr-panel">
-      <canvas id="qrCanvas" width="400" height="400"></canvas>
+      <canvas id="qrCanvas" width="500" height="500"></canvas>
       <div class="qr-buttons">
         <button type="button" onclick="downloadQR()" style="background:#004a75;">Download QR-code</button>
         <button type="button" onclick="downloadPDF()" style="background:#008f36;">Download PDF (A4)</button>
@@ -182,6 +182,7 @@
       <div class="info">
         Vul de belangrijkste informatie in en genereer de QR-code.<br>
         De data wordt gecomprimeerd voor een optimale QR-code.<br>
+        <b>Nu met 1200 tekens limiet en grotere QR-code!</b><br>
         <b>Versie 6.0</b>
       </div>
     </div>
@@ -204,7 +205,7 @@
   </div>
 
   <script>
-    const MAX_TOTAL_CHARS = 700;
+    const MAX_TOTAL_CHARS = 1200; // Verhoogd van 700 naar 1200 tekens
     const fields = ['diagnose', 'medicatie', 'protocollen', 'gedrag', 'communicatie', 'aanspreekbaarheid', 'transfers', 'overig'];
     
     // Functie om telefoonnummer te valideren en automatisch te formatteren
@@ -276,7 +277,7 @@
         totalChars += length;
       });
       
-      document.getElementById('total-teller').textContent = `Totaal: ${totalChars}/700 tekens`;
+      document.getElementById('total-teller').textContent = `Totaal: ${totalChars}/1200 tekens`;
     }
 
     function checkTotalLimit() {
@@ -343,7 +344,7 @@
                             transfers.length + overigValue.length;
       
       if (totalInfoChars > MAX_TOTAL_CHARS) {
-        warnDiv.textContent = `Te veel tekens! Totaal: ${totalInfoChars}/700. Verkort de tekst in een of meer velden.`;
+        warnDiv.textContent = `Te veel tekens! Totaal: ${totalInfoChars}/1200. Verkort de tekst in een of meer velden.`;
         return;
       }
       
@@ -369,9 +370,9 @@
       const canvas = document.getElementById('qrCanvas');
       
        QRCode.toCanvas(canvas, encoded, { 
-         width: 400, 
+         width: 500, // Verhoogd van 400 naar 500 voor meer data
          margin: 1, 
-         errorCorrectionLevel: 'M',
+         errorCorrectionLevel: 'L', // Veranderd van 'M' naar 'L' voor meer data (7% vs 15% foutcorrectie)
          color: {
            dark: '#000000',
            light: '#FFFFFF'
@@ -466,7 +467,7 @@
              qrImgData = await QRCode.toDataURL(encoded, {
                  width: 1024, // Hoge resolutie voor scherpe print, bv 1024px
                  margin: 1,
-                 errorCorrectionLevel: 'M',
+                 errorCorrectionLevel: 'L', // Consistent met de normale QR-code
                  color: {
                      dark: '#000000',
                      light: '#FFFFFF'
