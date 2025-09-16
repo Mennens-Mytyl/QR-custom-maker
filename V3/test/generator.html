@@ -66,15 +66,8 @@
     .pdf-logo {
       width: 40mm; /* Iets groter logo in PDF */
       height: 40mm; /* Vaste hoogte */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: bold;
-      color: #0061a8;
-      background-color: #f0f8ff;
-      border: 2px solid #0061a8;
-      border-radius: 8px;
+      object-fit: contain;
+      display: block;
     }
     .pdf-main-content {
       flex-grow: 1; /* Neemt alle resterende ruimte */
@@ -199,7 +192,7 @@
               <p class="title">Taxi Info Buskaart</p>
               <p class="name"><span id="pdf-naam"></span></p>
           </div>
-          <div class="pdf-logo" id="pdf-logo-placeholder"></div>
+          <img src="logo.png" class="pdf-logo" id="pdf-logo-placeholder" alt="Logo">
       </div>
       <div class="pdf-main-content">
         <div class="pdf-qr"><img id="pdf-qr-img" src="" alt="QR-code"></div>
@@ -413,20 +406,8 @@
         document.getElementById('pdf-naam').textContent = naamInput; // Alleen de naam, 'Naam:' staat al in de HTML
         document.getElementById('pdf-datum').textContent = geformatteerdeDatum;
         
-        // Zet een eenvoudige tekst placeholder voor het logo
-        const logoElement = document.getElementById('pdf-logo-placeholder');
-        logoElement.innerHTML = 'LOGO';
-        logoElement.style.display = 'flex';
-        logoElement.style.alignItems = 'center';
-        logoElement.style.justifyContent = 'center';
-        logoElement.style.fontSize = '20px';
-        logoElement.style.fontWeight = 'bold';
-        logoElement.style.color = '#0061a8';
-        logoElement.style.backgroundColor = '#f0f8ff';
-        logoElement.style.border = '2px solid #0061a8';
-        logoElement.style.borderRadius = '8px';
-        logoElement.style.minHeight = '40mm';
-        console.log('Logo placeholder ingesteld voor PDF');
+        // Logo wordt nu direct geladen via HTML img tag
+        console.log('Logo wordt geladen via img tag in HTML');
         
         // Plaats de HOGE-RESOLUTIE QR-code in de template
         const pdfQrImg = document.getElementById('pdf-qr-img');
@@ -465,7 +446,7 @@
             scale: 2, 
             useCORS: true,
             allowTaint: true,
-            foreignObjectRendering: false,
+            foreignObjectRendering: true,
             logging: true,
             backgroundColor: '#ffffff',
             width: 794, // A4 breedte in pixels (210mm * 3.78)
@@ -480,6 +461,14 @@
                     clonedContent.style.display = 'flex';
                     clonedContent.style.flexDirection = 'column';
                     console.log('Cloned content styled');
+                }
+                // Zorg ervoor dat het logo correct wordt gekopieerd
+                const clonedLogo = clonedDoc.getElementById('pdf-logo-placeholder');
+                if (clonedLogo) {
+                    clonedLogo.style.width = '40mm';
+                    clonedLogo.style.height = '40mm';
+                    clonedLogo.style.objectFit = 'contain';
+                    console.log('Cloned logo styled');
                 }
             }
         });
