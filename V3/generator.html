@@ -291,20 +291,20 @@
       const encoded = LZString.compressToBase64(json);
       const canvas = document.getElementById('qrCanvas');
       
-      QRCode.toCanvas(canvas, encoded, { 
-        width: 400, 
-        margin: 1, 
-        errorCorrectionLevel: 'M',
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      }, function (error) {
-        if (error) {
-          console.error(error);
-          warnDiv.textContent = "Fout bij genereren: de data is waarschijnlijk te groot. Probeer de tekst in te korten.";
-        }
-      });
+       QRCode.toCanvas(canvas, encoded, { 
+         width: 400, 
+         margin: 1, 
+         errorCorrectionLevel: 'M',
+         color: {
+           dark: '#000000',
+           light: '#FFFFFF'
+         }
+       }, function (error) {
+         if (error) {
+           console.error(error);
+           warnDiv.textContent = "Fout bij genereren: de data is waarschijnlijk te groot. Probeer de tekst in te korten.";
+         }
+       });
     }
 
     function downloadQR() {
@@ -370,15 +370,15 @@
         // We gebruiken niet de .toCanvas() methode, maar .toDataURL() met hoge resolutie.
         let qrImgData;
         try {
-            qrImgData = await QRCode.toDataURL(encoded, {
-                width: 1024, // Hoge resolutie voor scherpe print, bv 1024px
-                margin: 1,
-                errorCorrectionLevel: 'M',
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                }
-            });
+             qrImgData = await QRCode.toDataURL(encoded, {
+                 width: 1024, // Hoge resolutie voor scherpe print, bv 1024px
+                 margin: 1,
+                 errorCorrectionLevel: 'M',
+                 color: {
+                     dark: '#000000',
+                     light: '#FFFFFF'
+                 }
+             });
         } catch (err) {
             console.error("Fout bij genereren van hoge-resolutie QR-code voor PDF:", err);
             alert("Er is een fout opgetreden bij het voorbereiden van de PDF.");

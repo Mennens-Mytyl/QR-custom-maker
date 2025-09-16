@@ -102,14 +102,14 @@
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         try {
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert"
-          });
-          if (code) {
-            processQR(code.data);
-            stopScan();
-            return;
-          }
+           const code = jsQR(imageData.data, imageData.width, imageData.height, {
+             inversionAttempts: "dontInvert"
+           });
+           if (code) {
+             processQR(code.data);
+             stopScan();
+             return;
+           }
         } catch (e) {
           // Fouten worden hier genegeerd om te voorkomen dat de scan stopt
         }
@@ -131,14 +131,14 @@
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             try {
               const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert"
-              });
-              if (code) {
-                processQR(code.data);
-              } else {
-                warnDiv.textContent = "Geen geldige QR-code gevonden op deze afbeelding.";
-              }
+               const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                 inversionAttempts: "dontInvert"
+               });
+               if (code) {
+                 processQR(code.data);
+               } else {
+                 warnDiv.textContent = "Geen geldige QR-code gevonden op deze afbeelding.";
+               }
             } catch (e) {
               warnDiv.textContent = "Fout bij het lezen van het bestand.";
             }
