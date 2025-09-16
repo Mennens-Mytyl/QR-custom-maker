@@ -443,16 +443,19 @@
         console.log('PDF Content innerHTML:', pdfContent.innerHTML.substring(0, 200) + '...');
         
         const canvas = await html2canvas(pdfContent, { 
-            scale: 2, 
+            scale: 1, 
             useCORS: true,
             allowTaint: true,
-            foreignObjectRendering: true,
+            foreignObjectRendering: false,
             logging: true,
             backgroundColor: '#ffffff',
             width: 794, // A4 breedte in pixels (210mm * 3.78)
             height: 1123, // A4 hoogte in pixels (297mm * 3.78)
             imageTimeout: 15000,
             removeContainer: false,
+            ignoreElements: function(element) {
+                return element.id === 'pdf-preview';
+            },
             onclone: function(clonedDoc) {
                 console.log('html2canvas cloning document');
                 // Zorg ervoor dat alle stijlen gekopieerd worden
@@ -460,22 +463,40 @@
                 if (clonedContent) {
                     clonedContent.style.display = 'flex';
                     clonedContent.style.flexDirection = 'column';
+                    clonedContent.style.position = 'relative';
+                    clonedContent.style.visibility = 'visible';
+                    clonedContent.style.opacity = '1';
                     console.log('Cloned content styled');
                 }
-                // Zorg ervoor dat het logo correct wordt gekopieerd
-                const clonedLogo = clonedDoc.getElementById('pdf-logo-placeholder');
-                if (clonedLogo) {
-                    clonedLogo.style.width = '40mm';
-                    clonedLogo.style.height = '40mm';
-                    clonedLogo.style.objectFit = 'contain';
-                    console.log('Cloned logo styled');
-                }
+                // Zorg ervoor dat alle elementen zichtbaar zijn
+                const allElements = clonedDoc.querySelectorAll('*');
+                allElements.forEach(el => {
+                    el.style.visibility = 'visible';
+                    el.style.opacity = '1';
+                });
+                console.log('All elements made visible');
             }
         });
         
         pdfPreview.style.display = 'none';
 
         console.log('Canvas created, size:', canvas.width, 'x', canvas.height);
+        
+        // Debug: controleer canvas content
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        let nonWhitePixels = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+            const r = pixels[i];
+            const g = pixels[i + 1];
+            const b = pixels[i + 2];
+            if (r < 250 || g < 250 || b < 250) {
+                nonWhitePixels++;
+            }
+        }
+        console.log('Non-white pixels in canvas:', nonWhitePixels);
+        
         const imgData = canvas.toDataURL('image/png');
         console.log('Image data length:', imgData.length);
         
