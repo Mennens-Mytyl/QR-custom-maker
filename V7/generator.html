@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi Info | QR-code maken | V7.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    /* --- Standaard Pagina Layout --- */
+    body { background: #f8fbff; font-family: Arial, sans-serif; margin: 0; padding: 0; color: #202b38; }
+    .container { max-width: 950px; margin: 48px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,40,80,0.07); padding: 48px; display: flex; flex-wrap: wrap; gap: 40px; justify-content: space-between; align-items: flex-start; position: relative; }
+    .logo-box { width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 12px; }
+    .logo-box img { width: 110px; height: auto; display: block; }
+    h1 { width: 100%; font-size: 2.2em; color: #0061a8; text-align: center; margin-bottom: 36px; letter-spacing: 0.02em; }
+    .form-panel { flex: 1 1 520px; min-width: 380px; max-width: 560px; display: flex; flex-direction: column; gap: 18px; }
+    .qr-panel { flex: 1 1 400px; min-width: 320px; max-width: 420px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 18px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; margin-top: 4px; }
+    input, textarea { width: 100%; font-size: 1.13em; border-radius: 10px; border: 1px solid #b3c7dd; padding: 12px; background: #f6fafd; box-sizing: border-box; transition: border 0.2s; }
+    input:focus, textarea:focus { border: 1.5px solid #0061a8; outline: none; background: #f0f7fd; }
+    textarea { min-height: 120px; resize: vertical; }
+    .required:after { content: " *"; color: #e00; }
+    .teller { font-size: 0.98em; color: #888; float: right; margin-top: -28px; margin-bottom: 8px; }
+    button { width: 100%; background: linear-gradient(90deg, #008fe2 0%, #0061a8 100%); color: #fff; border: none; border-radius: 12px; font-size: 1.25em; font-weight: 600; padding: 16px 0; cursor: pointer; margin-top: 18px; box-shadow: 0 4px 12px rgba(0, 97, 168, 0.12); transition: background 0.3s ease; }
+    button:hover { background: linear-gradient(90deg, #0061a8 0%, #008fe2 100%); }
+    #qrCanvas { width: 600px !important; height: 600px !important; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #e0e8f0; border: 1.5px solid #eaf2fb; margin-top: 10px; aspect-ratio: 1/1; display: block; max-width: 100%; max-height: 100%; }
+    .qr-buttons { width: 100%; display: flex; flex-direction: row; gap: 16px; margin-top: 14px; justify-content: center; }
+    .qr-buttons button { width: auto; padding: 12px 22px; font-size: 1.08em; margin-top: 0; margin-bottom: 0; box-shadow: 0 2px 8px #e0e8f0; }
+    .info { width: 100%; font-size: 1.07em; color: #5a6b7a; margin-top: 22px; text-align: center; }
+    .warn { width: 100%; color: #e00; font-weight: 600; text-align: center; margin-top: 14px; }
+    
+    
+    /* --- PDF Layout --- */
+    #pdf-preview { display: none; position: absolute; left: -9999px; top: -9999px; /* Verberg het element buiten het scherm */ }
+    .pdf-a4 {
+      width: 210mm;
+      height: 297mm;
+      background: #fff;
+      color: #202b38;
+      font-family: Arial, sans-serif;
+      box-sizing: border-box;
+      padding: 15mm;
+      display: flex;
+      flex-direction: column;
+    }
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+      padding-bottom: 10mm;
+    }
+    .pdf-header-text .title {
+      font-size: 2.2em;
+      color: #0061a8;
+      font-weight: bold;
+      margin: 0;
+    }
+    .pdf-header-text .name {
+        font-size: 1.6em;
+        margin-top: 5mm;
+    }
+    .pdf-logo {
+      width: 40mm; /* Iets groter logo in PDF */
+      height: 40mm; /* Vaste hoogte */
+      object-fit: contain;
+      display: block;
+    }
+    .pdf-main-content {
+      flex-grow: 1; /* Neemt alle resterende ruimte */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .pdf-qr {
+      width: 100%;
+      height: 150mm; /* Grote vaste hoogte, QR-code schaalt hierin mee */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pdf-qr img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .pdf-footer {
+      width: 100%;
+      text-align: center;
+      color: #888;
+      font-size: 0.9em;
+      padding-top: 10mm;
+    }
+
+    @media (max-width: 1100px) { .container { flex-direction: column; align-items: stretch; gap: 24px; } .qr-panel { align-items: center; } }
+    @media (max-width: 700px) { .container { padding: 16px 2vw; } .form-panel, .qr-panel { min-width: 0; max-width: 100%; } #qrCanvas { width: 85vw !important; height: auto !important; } .qr-buttons { flex-direction: column; gap: 10px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-box">
+      <img src="logo.png" alt="Logo Mytylschool Roosendaal">
+    </div>
+    <h1>Taxi Info | QR-code maken | V7.1</h1>
+    <form class="form-panel" onsubmit="event.preventDefault(); generateQR();">
+      <div>
+        <label for="naam" class="required">Naam</label>
+        <input type="text" id="naam" required maxlength="60" placeholder="Naam leerling">
+      </div>
+      <div>
+        <label for="datum" class="required">Datum Buskaart</label>
+        <input type="date" id="datum" required>
+      </div>
+       <div>
+         <label for="crisisnummer1" class="required">Crisisnummer 1</label>
+         <input type="tel" id="crisisnummer1" required maxlength="20" placeholder="Alleen cijfers en + (bijv. 0612345678)" oninput="validatePhoneNumber('crisisnummer1')" onblur="validatePhoneNumber('crisisnummer1')">
+         <div id="crisisnummer1-error" class="error-message" style="display: none; color: #d32f2f; font-size: 0.9em; margin-top: 4px;"></div>
+         <input type="text" id="crisisnaam1" maxlength="30" placeholder="Bijv. Mama, Papa, Oma..." style="margin-top: 8px;">
+       </div>
+       <div>
+         <label for="crisisnummer2">Crisisnummer 2</label>
+         <input type="tel" id="crisisnummer2" maxlength="20" placeholder="Alleen cijfers en + (bijv. 0687654321)" oninput="validatePhoneNumber('crisisnummer2')" onblur="validatePhoneNumber('crisisnummer2')">
+         <div id="crisisnummer2-error" class="error-message" style="display: none; color: #d32f2f; font-size: 0.9em; margin-top: 4px;"></div>
+         <input type="text" id="crisisnaam2" maxlength="30" placeholder="Bijv. Mama, Papa, Oma..." style="margin-top: 8px;">
+       </div>
+      <div>
+        <label for="diagnose">Diagnose</label>
+        <span class="teller" id="diagnose-teller">0</span>
+        <textarea id="diagnose" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier diagnose informatie in..."></textarea>
+      </div>
+      <div>
+        <label for="medicatie">Medicatie</label>
+        <span class="teller" id="medicatie-teller">0</span>
+        <textarea id="medicatie" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier medicatie informatie in..."></textarea>
+      </div>
+      <div>
+        <label for="protocollen">Protocollen</label>
+        <span class="teller" id="protocollen-teller">0</span>
+        <textarea id="protocollen" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier protocollen informatie in..."></textarea>
+      </div>
+      <div>
+        <label for="gedrag">Gedrag</label>
+        <span class="teller" id="gedrag-teller">0</span>
+        <textarea id="gedrag" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier gedrag informatie in..."></textarea>
+      </div>
+      <div>
+        <label for="communicatie">Communicatie</label>
+        <span class="teller" id="communicatie-teller">0</span>
+        <textarea id="communicatie" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier communicatie informatie in..."></textarea>
+      </div>
+      <div>
+        <label for="aanspreekbaarheid">Aanspreekbaarheid</label>
+        <span class="teller" id="aanspreekbaarheid-teller">0</span>
+        <textarea id="aanspreekbaarheid" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier aanspreekbaarheid informatie in..."></textarea>
+      </div>
+      <div>
+        <label for="transfers">Transfers</label>
+        <span class="teller" id="transfers-teller">0</span>
+        <textarea id="transfers" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier transfers informatie in..."></textarea>
+      </div>
+      <div>
+        <label for="overig">Overig</label>
+        <span class="teller" id="overig-teller">0</span>
+        <textarea id="overig" oninput="updateAllTellers(); checkTotalLimit();" placeholder="Vul hier overige informatie in..."></textarea>
+      </div>
+      <div style="text-align: center; margin-top: 10px;">
+        <span id="total-teller" style="font-size: 1.1em; font-weight: 600; color: #0061a8;">Totaal: 0/2500 tekens</span>
+      </div>
+      <button type="submit">Genereer QR-code</button>
+      <div id="warn" class="warn"></div>
+    </form>
+    <div class="qr-panel">
+      <canvas id="qrCanvas" width="600" height="600"></canvas>
+      <div class="qr-buttons">
+        <button type="button" onclick="downloadQR()" style="background:#004a75;">Download QR-code</button>
+        <button type="button" onclick="downloadPDF()" style="background:#008f36;">Download PDF (A4)</button>
+      </div>
+      <div class="info">
+        Vul de belangrijkste informatie in en genereer de QR-code.<br>
+        De data wordt gecomprimeerd voor een optimale QR-code.<br>
+        <b>Nu met 2500 tekens limiet en extra grote QR-code!</b><br>
+        <b>Versie 7.1</b>
+      </div>
+    </div>
+  </div>
+  
+  <div id="pdf-preview">
+    <div class="pdf-a4" id="pdf-content">
+      <div class="pdf-header">
+          <div class="pdf-header-text">
+              <p class="title">Taxi Info Buskaart</p>
+              <p class="name"><span id="pdf-naam"></span></p>
+          </div>
+          <img src="logo.png" class="pdf-logo" id="pdf-logo-placeholder" alt="Logo">
+      </div>
+      <div class="pdf-main-content">
+        <div class="pdf-qr"><img id="pdf-qr-img" src="" alt="QR-code"></div>
+      </div>
+      <div class="pdf-footer">Mytylschool Roosendaal &mdash; QR-code buskaart &mdash; <span id="pdf-datum"></span> &mdash; Versie 7.1</div>
+    </div>
+  </div>
+
+  <script>
+    const MAX_TOTAL_CHARS = 2500; // Verhoogd naar 2500 tekens voor uitgebreide informatie
+    const fields = ['diagnose', 'medicatie', 'protocollen', 'gedrag', 'communicatie', 'aanspreekbaarheid', 'transfers', 'overig'];
+    
+    // Functie om telefoonnummer te valideren en automatisch te formatteren
+    function validatePhoneNumber(inputId) {
+        const input = document.getElementById(inputId);
+        const errorDiv = document.getElementById(inputId + '-error');
+        let value = input.value.trim();
+        
+        if (value === '') {
+            errorDiv.style.display = 'none';
+            input.style.borderColor = '';
+            return true;
+        }
+        
+        // Verwijder alle niet-numerieke karakters behalve +
+        const cleanValue = value.replace(/[^0-9+]/g, '');
+        
+        // Controleer of er ongeldige karakters waren
+        if (value !== cleanValue) {
+            // Auto-correctie: vervang de waarde met de schone versie
+            input.value = cleanValue;
+            value = cleanValue;
+        }
+        
+        // Alleen cijfers en + zijn toegestaan
+        const validPhoneRegex = /^[0-9+]+$/;
+        
+        if (!validPhoneRegex.test(value)) {
+            errorDiv.textContent = 'Alleen cijfers en + zijn toegestaan. Dit nummer wordt gebruikt om direct te bellen!';
+            errorDiv.style.display = 'block';
+            input.style.borderColor = '#d32f2f';
+            return false;
+        }
+        
+        // Controleer minimale lengte (alleen cijfers tellen)
+        const digitsOnly = value.replace(/[^0-9]/g, '');
+        if (digitsOnly.length < 8) {
+            errorDiv.textContent = 'Telefoonnummer moet minimaal 8 cijfers bevatten. Dit nummer wordt gebruikt om direct te bellen!';
+            errorDiv.style.display = 'block';
+            input.style.borderColor = '#d32f2f';
+            return false;
+        }
+        
+        // Controleer maximale lengte (redelijke limiet)
+        if (digitsOnly.length > 15) {
+            errorDiv.textContent = 'Telefoonnummer is te lang. Maximaal 15 cijfers toegestaan.';
+            errorDiv.style.display = 'block';
+            input.style.borderColor = '#d32f2f';
+            return false;
+        }
+        
+        // Nederlandse nummers: 06-12345678 wordt automatisch 0612345678
+        if (value.startsWith('06') && digitsOnly.length === 10) {
+            input.value = digitsOnly;
+        }
+        
+        errorDiv.style.display = 'none';
+        input.style.borderColor = '';
+        return true;
+    }
+
+    function updateAllTellers() {
+      let totalChars = 0;
+      
+      fields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        const length = field.value.length;
+        document.getElementById(fieldName + '-teller').textContent = length;
+        totalChars += length;
+      });
+      
+      document.getElementById('total-teller').textContent = `Totaal: ${totalChars}/2500 tekens`;
+    }
+
+    function checkTotalLimit() {
+      let totalChars = 0;
+      
+      fields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        totalChars += field.value.length;
+      });
+      
+      // Als we over de limiet gaan, trim het huidige veld
+      if (totalChars > MAX_TOTAL_CHARS) {
+        const currentField = event.target;
+        const excess = totalChars - MAX_TOTAL_CHARS;
+        const newLength = currentField.value.length - excess;
+        currentField.value = currentField.value.substring(0, newLength);
+        updateAllTellers();
+      }
+    }
+
+
+    function generateQR() {
+      const warnDiv = document.getElementById('warn');
+      warnDiv.textContent = ''; 
+
+      const naam = document.getElementById('naam').value.trim();
+      const datum = document.getElementById('datum').value.trim();
+      const crisisnummer1 = document.getElementById('crisisnummer1').value.trim();
+      const crisisnaam1 = document.getElementById('crisisnaam1').value.trim();
+      const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
+      const crisisnaam2 = document.getElementById('crisisnaam2').value.trim();
+      
+      // Valideer crisisnummers
+      if (crisisnummer1 && !validatePhoneNumber('crisisnummer1')) {
+          alert('Crisisnummer 1 is ongeldig. Controleer het nummer en probeer opnieuw.');
+          return;
+      }
+      
+      if (crisisnummer2 && !validatePhoneNumber('crisisnummer2')) {
+          alert('Crisisnummer 2 is ongeldig. Controleer het nummer en probeer opnieuw.');
+          return;
+      }
+      
+      // Verzamel alle nieuwe velden
+      const diagnose = document.getElementById('diagnose').value.trim();
+      const medicatie = document.getElementById('medicatie').value.trim();
+      const protocollen = document.getElementById('protocollen').value.trim();
+      const gedrag = document.getElementById('gedrag').value.trim();
+      const communicatie = document.getElementById('communicatie').value.trim();
+      const aanspreekbaarheid = document.getElementById('aanspreekbaarheid').value.trim();
+      const transfers = document.getElementById('transfers').value.trim();
+      const overig = document.getElementById('overig').value.trim();
+      
+      const overigValue = overig;
+
+      if (!naam || !datum || !crisisnummer1) {
+        warnDiv.textContent = "Naam, Datum Buskaart en Crisisnummer 1 zijn verplicht!";
+        return;
+      }
+      
+      // Controleer totale karakterlimiet
+      const totalInfoChars = diagnose.length + medicatie.length + protocollen.length + 
+                            gedrag.length + communicatie.length + aanspreekbaarheid.length + 
+                            transfers.length + overigValue.length;
+      
+      if (totalInfoChars > MAX_TOTAL_CHARS) {
+        warnDiv.textContent = `Te veel tekens! Totaal: ${totalInfoChars}/2500. Verkort de tekst in een of meer velden.`;
+        return;
+      }
+      
+      const data = { n: naam, d: datum, c1: crisisnummer1 };
+      if (crisisnaam1) data.c1n = crisisnaam1;
+      if (crisisnummer2) data.c2 = crisisnummer2;
+      if (crisisnaam2) data.c2n = crisisnaam2;
+      
+      // Voeg alleen gevulde velden toe
+      if (diagnose) data.diag = diagnose;
+      if (medicatie) data.med = medicatie;
+      if (protocollen) data.prot = protocollen;
+      if (gedrag) data.gedr = gedrag;
+      if (communicatie) data.comm = communicatie;
+      if (aanspreekbaarheid) data.aansp = aanspreekbaarheid;
+      if (transfers) data.trans = transfers;
+      if (overigValue) data.overig = overigValue;
+      
+      const json = JSON.stringify(data);
+      console.log('Data die wordt opgeslagen in QR-code:', data);
+      console.log('JSON string:', json);
+      const encoded = LZString.compressToBase64(json);
+      const canvas = document.getElementById('qrCanvas');
+      
+       QRCode.toCanvas(canvas, encoded, { 
+         width: 600, // Verhoogd naar 600 voor maximale data capaciteit
+         margin: 1, 
+         errorCorrectionLevel: 'L', // Laagste foutcorrectie voor maximale data (7%)
+         color: {
+           dark: '#000000',
+           light: '#FFFFFF'
+         }
+       }, function (error) {
+         if (error) {
+           console.error(error);
+           warnDiv.textContent = "Fout bij genereren: de data is waarschijnlijk te groot. Probeer de tekst in te korten.";
+         }
+       });
+    }
+
+    function downloadQR() {
+      const canvas = document.getElementById('qrCanvas');
+      if (canvas.toDataURL().length < 100) {
+          alert('Genereer eerst een QR-code!');
+          return;
+      }
+      const link = document.createElement('a');
+      link.download = 'taxi-info-qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // ===================================================================================
+    // HIERONDER STAAT DE VOLLEDIG VERBETERDE `downloadPDF` FUNCTIE
+    // ===================================================================================
+    async function downloadPDF() {
+        const qrCanvas = document.getElementById('qrCanvas');
+        if (qrCanvas.toDataURL().length < 100) {
+            alert('Genereer eerst een QR-code voordat je een PDF downloadt!');
+            return;
+        }
+
+        try {
+
+        // --- START VAN DE WIJZIGINGEN ---
+
+        // STAP 1: Haal alle data opnieuw op, net als in generateQR()
+        // Dit is nodig om de QR-code opnieuw te kunnen genereren in hoge resolutie.
+        const naamInput = document.getElementById('naam').value.trim();
+        const datumInput = document.getElementById('datum').value.trim();
+        const crisisnummer1 = document.getElementById('crisisnummer1').value.trim();
+        
+        // Valideer crisisnummers
+        if (crisisnummer1 && !validatePhoneNumber('crisisnummer1')) {
+            alert('Crisisnummer 1 is ongeldig. Controleer het nummer en probeer opnieuw.');
+            return;
+        }
+        const crisisnaam1 = document.getElementById('crisisnaam1').value.trim();
+        const crisisnummer2 = document.getElementById('crisisnummer2').value.trim();
+        const crisisnaam2 = document.getElementById('crisisnaam2').value.trim();
+        
+        // Valideer crisisnummer 2
+        if (crisisnummer2 && !validatePhoneNumber('crisisnummer2')) {
+            alert('Crisisnummer 2 is ongeldig. Controleer het nummer en probeer opnieuw.');
+            return;
+        }
+        
+        // Verzamel alle nieuwe velden voor PDF - gebruik dezelfde logica als generateQR
+        const diagnose = document.getElementById('diagnose').value.trim();
+        const medicatie = document.getElementById('medicatie').value.trim();
+        const protocollen = document.getElementById('protocollen').value.trim();
+        const gedrag = document.getElementById('gedrag').value.trim();
+        const communicatie = document.getElementById('communicatie').value.trim();
+        const aanspreekbaarheid = document.getElementById('aanspreekbaarheid').value.trim();
+        const transfers = document.getElementById('transfers').value.trim();
+        const overig = document.getElementById('overig').value.trim();
+        
+        const data = { n: naamInput, d: datumInput, c1: crisisnummer1 };
+        if (crisisnaam1) data.c1n = crisisnaam1;
+        if (crisisnummer2) data.c2 = crisisnummer2;
+        if (crisisnaam2) data.c2n = crisisnaam2;
+        
+        // Voeg alleen gevulde velden toe
+        if (diagnose) data.diag = diagnose;
+        if (medicatie) data.med = medicatie;
+        if (protocollen) data.prot = protocollen;
+        if (gedrag) data.gedr = gedrag;
+        if (communicatie) data.comm = communicatie;
+        if (aanspreekbaarheid) data.aansp = aanspreekbaarheid;
+        if (transfers) data.trans = transfers;
+        if (overig) data.overig = overig;
+        
+        const json = JSON.stringify(data);
+        const encoded = LZString.compressToBase64(json);
+
+        // STAP 2: Genereer een NIEUWE, HOGE-RESOLUTIE QR-code als Data URL
+        // We gebruiken niet de .toCanvas() methode, maar .toDataURL() met hoge resolutie.
+        let qrImgData;
+        try {
+             qrImgData = await QRCode.toDataURL(encoded, {
+                 width: 1200, // Nog hogere resolutie voor grote QR-codes
+                 margin: 1,
+                 errorCorrectionLevel: 'L', // Consistent met de normale QR-code
+                 color: {
+                     dark: '#000000',
+                     light: '#FFFFFF'
+                 }
+             });
+        } catch (err) {
+            console.error("Fout bij genereren van hoge-resolutie QR-code voor PDF:", err);
+            alert("Er is een fout opgetreden bij het voorbereiden van de PDF.");
+            return;
+        }
+        
+        // --- EINDE VAN DE WIJZIGINGEN ---
+
+        // De rest van de functie werkt nu met de nieuwe, scherpe qrImgData
+        const pdfPreview = document.getElementById('pdf-preview');
+        pdfPreview.style.display = 'block';
+
+        const geformatteerdeDatum = datumInput ? new Date(datumInput).toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+
+        // Vul de PDF template in
+        document.getElementById('pdf-naam').textContent = naamInput; // Alleen de naam, 'Naam:' staat al in de HTML
+        document.getElementById('pdf-datum').textContent = geformatteerdeDatum;
+        
+        // Logo wordt nu direct geladen via HTML img tag
+        console.log('Logo wordt geladen via img tag in HTML');
+        
+        // Plaats de HOGE-RESOLUTIE QR-code in de template
+        const pdfQrImg = document.getElementById('pdf-qr-img');
+        
+        try {
+            await new Promise((resolve, reject) => {
+                pdfQrImg.onload = resolve;
+                pdfQrImg.onerror = reject;
+                pdfQrImg.src = qrImgData; // Hier wordt de nieuwe, scherpe afbeelding gebruikt
+            });
+        } catch (error) {
+            console.error("Fout bij het laden van de QR-code afbeelding:", error);
+            alert("Er is een fout opgetreden bij het voorbereiden van de PDF.");
+            pdfPreview.style.display = 'none';
+            return;
+        }
+
+        // Wacht ook op het logo (indien nog niet geladen)
+        const logoImg = document.getElementById('pdf-logo-placeholder');
+        if (logoImg && !logoImg.complete) {
+            try {
+                await new Promise((resolve, reject) => {
+                    logoImg.onload = resolve;
+                    logoImg.onerror = reject;
+                });
+            } catch (e) {
+                console.warn('Logo kon niet worden geladen voor PDF, ga toch verder.');
+            }
+        }
+        
+        // Debug: controleer of de PDF content correct is
+        const naamText = document.getElementById('pdf-naam').textContent;
+        const datumText = document.getElementById('pdf-datum').textContent;
+        console.log('PDF Naam:', naamText);
+        console.log('PDF Datum:', datumText);
+        console.log('PDF QR img src:', document.getElementById('pdf-qr-img').src);
+
+        // Maak de PDF met html2canvas zoals je al deed
+        const pdfContent = document.getElementById('pdf-content');
+        
+        // Debug: log de content
+        console.log('PDF Content element:', pdfContent);
+        console.log('PDF Content innerHTML:', pdfContent.innerHTML.substring(0, 200) + '...');
+        
+        // Render direct de echte PDF content met hoge resolutie (scherper resultaat)
+        const canvas = await html2canvas(pdfContent, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            logging: false
+        });
+        
+        pdfPreview.style.display = 'none';
+
+        console.log('Canvas created, size:', canvas.width, 'x', canvas.height);
+        
+        const imgData = canvas.toDataURL('image/png');
+        console.log('Image data length:', imgData.length);
+        
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        console.log('PDF dimensions:', pdfWidth, 'x', pdfHeight);
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`taxi-info_${naamInput.replace(/ /g, '_') || 'buskaart'}.pdf`);
+        console.log('PDF saved successfully');
+        
+        } catch (error) {
+            console.error("Fout bij het maken van de PDF:", error);
+            alert("Er is een fout opgetreden bij het maken van de PDF. Probeer het opnieuw.");
+        }
+    }
+    
+    // Initialiseer de pagina bij laden
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialiseer alle tellers
+      updateAllTellers();
+      
+      // Zet de datum op vandaag
+      document.getElementById('datum').valueAsDate = new Date();
+    });
+  </script>
+</body>
+</html>
